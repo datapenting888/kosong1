@@ -1776,7 +1776,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.015); }
 
       <!-- PANEL BATAS IZIN (ADMIN ONLY) -->
       <div class="panel" id="panel-set-limit">
-        <div class="ph"><div class="pt">Batas Izin</div><div class="ps">Atur batas waktu izin keluar dan jumlah maksimal staff yang boleh izin keluar bersamaan</div></div>
+        <div class="ph"><div class="pt">Batas Izin</div><div class="ps">Atur batas waktu izin keluar dan jumlah maksimal staff per jabatan yang boleh izin keluar bersamaan</div></div>
         <div class="scard-wrap"><div class="scard">
           <div class="msg-err" id="blErr"></div>
           <div class="msg-ok" id="blOk"></div>
@@ -1785,18 +1785,36 @@ tr:hover td { background: rgba(255, 255, 255, 0.015); }
             <input id="blMinutes" type="number" min="1" max="180" placeholder="Contoh: 20"/>
             <div class="fhint">Staff akan tercatat melebihi batas jika tidak kembali dalam waktu ini.</div>
           </div>
+          <button class="btn-primary" id="btnSaveLimit">Simpan Batas Waktu</button>
+
+          <hr class="sdiv"/>
+
           <div class="field">
-            <label>Batas Staff Keluar Bersamaan</label>
-            <select id="blMaxOut">
+            <label>Batas Staff Keluar Bersamaan per Jabatan</label>
+            <div class="fhint">Pilih jabatan lalu tentukan kuota maksimal staff jabatan itu yang boleh izin keluar dalam waktu bersamaan (maks 5 orang).</div>
+          </div>
+          <div class="field">
+            <label>Jabatan</label>
+            <select id="blJabatan">
+              <option value="CS">CS</option>
+              <option value="CS Line">CS Line</option>
+              <option value="Kasir">Kasir</option>
+              <option value="Kapten">Kapten</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Kuota Keluar Bersamaan</label>
+            <select id="blJabatanKuota">
               <option value="1">1 orang</option>
               <option value="2">2 orang</option>
               <option value="3">3 orang</option>
               <option value="4">4 orang</option>
               <option value="5">5 orang</option>
             </select>
-            <div class="fhint">Maksimal 5 staff yang boleh izin keluar dalam waktu bersamaan.</div>
           </div>
-          <button class="btn-primary" id="btnSaveLimit">Simpan Pengaturan</button>
+          <button class="btn-primary" id="btnSaveJabatanLimit">Simpan Batas Jabatan</button>
+
+          <div id="jabatanLimitList" style="margin-top:1.3rem"></div>
         </div></div>
       </div>
 
@@ -1921,24 +1939,40 @@ function saveExtra() {
 
 function loadLimitSettings() {
   var m = lsGet("l99_batas_menit");
-  var mo = lsGet("l99_batas_maxout");
   var menit = m ? parseInt(m, 10) : 20;
-  var maxOut = mo ? parseInt(mo, 10) : MAX_OUT_CAP;
   if (!menit || menit < 1) menit = 20;
-  if (!maxOut || maxOut < 1) maxOut = MAX_OUT_CAP;
-  if (maxOut > MAX_OUT_CAP) maxOut = MAX_OUT_CAP;
   BATAS_MS = menit * 60 * 1000;
-  MAX_OUT = maxOut;
+  loadJabatanLimits();
 }
-function saveLimitSettings(menit, maxOut) {
-  if (maxOut > MAX_OUT_CAP) maxOut = MAX_OUT_CAP;
+function saveLimitSettings(menit) {
   lsSet("l99_batas_menit", String(menit));
-  lsSet("l99_batas_maxout", String(maxOut));
   loadLimitSettings();
 }
-function countCurrentlyOut() {
+function loadJabatanLimits() {
+  var r = lsGet("l99_batas_jabatan");
+  var map = {};
+  if (r) { try { map = JSON.parse(r) || {}; } catch(e) { map = {}; } }
+  JABATAN_LIMITS = map;
+}
+function saveJabatanLimit(jabatan, kuota) {
+  if (kuota > MAX_OUT_CAP) kuota = MAX_OUT_CAP;
+  if (kuota < 1) kuota = 1;
+  JABATAN_LIMITS[jabatan] = kuota;
+  lsSet("l99_batas_jabatan", JSON.stringify(JABATAN_LIMITS));
+}
+function removeJabatanLimit(jabatan) {
+  delete JABATAN_LIMITS[jabatan];
+  lsSet("l99_batas_jabatan", JSON.stringify(JABATAN_LIMITS));
+}
+function getJabatanLimit(jabatan) {
+  var v = JABATAN_LIMITS[jabatan];
+  if (!v || v < 1) return MAX_OUT_CAP;
+  return v > MAX_OUT_CAP ? MAX_OUT_CAP : v;
+}
+function countCurrentlyOutByJabatan(jabatan) {
   var today = todayStr(), cnt = 0;
   for (var uid in USERS) {
+    if (USERS[uid].role !== jabatan) continue;
     var r = lsGet(sk(uid)); if (!r) continue;
     try {
       var d = JSON.parse(r);
@@ -1947,6 +1981,46 @@ function countCurrentlyOut() {
   }
   return cnt;
 }
+function renderJabatanLimitList() {
+  var box = g("jabatanLimitList"); if (!box) return;
+  box.innerHTML = "";
+  var jabatans = ["CS", "CS Line", "Kasir", "Kapten"];
+  var any = false;
+  for (var i = 0; i < jabatans.length; i++) {
+    var jb = jabatans[i];
+    var configured = typeof JABATAN_LIMITS[jb] !== "undefined";
+    var kuota = getJabatanLimit(jb);
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:.7rem .9rem;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;margin-bottom:.55rem";
+    var left = document.createElement("div");
+    left.style.cssText = "font-size:.85rem;color:var(--t1);font-weight:600";
+    left.textContent = jb;
+    var right = document.createElement("div");
+    right.style.cssText = "display:flex;align-items:center;gap:.7rem";
+    var badge = document.createElement("span");
+    badge.style.cssText = "font-size:.8rem;color:" + (configured ? "var(--gold)" : "var(--t2)") + ";font-weight:600";
+    badge.textContent = kuota + " orang" + (configured ? "" : " (default)");
+    right.appendChild(badge);
+    if (configured) {
+      any = true;
+      var delBtn = document.createElement("button");
+      delBtn.className = "btn-ghost";
+      delBtn.style.cssText = "padding:.25rem .7rem;font-size:.75rem";
+      delBtn.textContent = "Hapus";
+      delBtn.addEventListener("click", (function(role) {
+        return function() {
+          removeJabatanLimit(role);
+          renderJabatanLimitList();
+          showMsg("blOk", "Batas untuk " + role + " dikembalikan ke default.");
+        };
+      })(jb));
+      right.appendChild(delBtn);
+    }
+    row.appendChild(left); row.appendChild(right);
+    box.appendChild(row);
+  }
+}
+
 
 // =========================================
 // STATE
@@ -1956,7 +2030,7 @@ var S = { terpakai:0, sedangDiluar:false, waktuKeluar:null, waktuKeluarMs:null, 
 var TELAT = [];
 var BATAS_MS = 20 * 60 * 1000;
 var MAX_OUT_CAP = 5;
-var MAX_OUT = 5;
+var JABATAN_LIMITS = {};
 var CIRC = 2 * Math.PI * 43; // r=43
 var _cdInt = null;
 
@@ -1998,6 +2072,7 @@ function refreshActivePanel() {
   else if (active === "monit") renderMonit();
   else if (active === "staff") renderStaffTable();
   else if (active === "hist-admin") renderHistAdmin();
+  else if (active === "set-limit") renderJabatanLimitList();
 }
 function attachFbSync() {
   if (!fbDB) return;
@@ -2207,8 +2282,10 @@ function goPanel(name) {
   }
   if (name === "set-limit") {
     g("blMinutes").value = String(BATAS_MS / 60000);
-    g("blMaxOut").value = String(MAX_OUT);
+    g("blJabatan").value = "CS";
+    g("blJabatanKuota").value = "5";
     hideMsg("blErr"); hideMsg("blOk");
+    renderJabatanLimitList();
   }
   if (name === "set-prof") loadProfForm();
   if (name === "staff") renderStaffTable();
@@ -2588,7 +2665,8 @@ function updateUI() {
 function aksKeluar() {
   if (S.sedangDiluar) { toast("Kamu sedang di luar! Kembali masuk dulu.", "warn"); return; }
   if (S.terpakai >= CU.kuota) { toast("Kuota izin hari ini sudah habis!", "error"); return; }
-  if (countCurrentlyOut() >= MAX_OUT) { toast("Batas staff keluar bersamaan sudah penuh (maks " + MAX_OUT + " orang). Coba lagi nanti.", "error"); return; }
+  var jbLimit = getJabatanLimit(CU.role);
+  if (countCurrentlyOutByJabatan(CU.role) >= jbLimit) { toast("Batas staff " + CU.role + " keluar bersamaan sudah penuh (maks " + jbLimit + " orang). Coba lagi nanti.", "error"); return; }
   var t = nowStr();
   S.terpakai++; S.sedangDiluar = true; S.waktuKeluar = t; S.waktuKeluarMs = Date.now();
   S.history.push({ type:"keluar", time:t, ms:Date.now() });
@@ -3284,12 +3362,22 @@ function init() {
     hideMsg("blErr"); hideMsg("blOk");
     if (!CU || CU.role !== "Admin") { showMsg("blErr", "Hanya admin yang bisa mengubah pengaturan ini."); return; }
     var menit = parseInt(g("blMinutes").value, 10);
-    var maxOut = parseInt(g("blMaxOut").value, 10);
     if (!menit || menit < 1 || menit > 180) { showMsg("blErr", "Masukkan batas waktu izin yang valid (1-180 menit)."); return; }
-    if (!maxOut || maxOut < 1 || maxOut > MAX_OUT_CAP) { showMsg("blErr", "Batas staff keluar bersamaan maksimal " + MAX_OUT_CAP + " orang."); return; }
-    saveLimitSettings(menit, maxOut);
-    showMsg("blOk", "Pengaturan batas izin berhasil disimpan.");
-    toast("Pengaturan batas izin disimpan.", "success");
+    saveLimitSettings(menit);
+    showMsg("blOk", "Batas waktu izin berhasil disimpan.");
+    toast("Batas waktu izin disimpan.", "success");
+  });
+  g("btnSaveJabatanLimit").addEventListener("click", function() {
+    hideMsg("blErr"); hideMsg("blOk");
+    if (!CU || CU.role !== "Admin") { showMsg("blErr", "Hanya admin yang bisa mengubah pengaturan ini."); return; }
+    var jabatan = g("blJabatan").value;
+    var kuota = parseInt(g("blJabatanKuota").value, 10);
+    if (!jabatan) { showMsg("blErr", "Pilih jabatan terlebih dahulu."); return; }
+    if (!kuota || kuota < 1 || kuota > MAX_OUT_CAP) { showMsg("blErr", "Kuota keluar bersamaan maksimal " + MAX_OUT_CAP + " orang."); return; }
+    saveJabatanLimit(jabatan, kuota);
+    renderJabatanLimitList();
+    showMsg("blOk", "Batas untuk jabatan " + jabatan + " berhasil disimpan.");
+    toast("Batas jabatan " + jabatan + " disimpan.", "success");
   });
 
   // Modals management
