@@ -1527,6 +1527,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.015); }
           <div class="sbsub" id="sb-set-prof">Foto Profil</div>
           <div class="sbsub hidden" id="sb-set-add">Tambah Staff</div>
           <div class="sbsub hidden" id="sb-set-reset">Reset Password Staff</div>
+          <div class="sbsub hidden" id="sb-set-limit">Batas Izin</div>
         </div>
       </div>
       <div class="sb-foot">
@@ -1773,6 +1774,32 @@ tr:hover td { background: rgba(255, 255, 255, 0.015); }
         </div></div>
       </div>
 
+      <!-- PANEL BATAS IZIN (ADMIN ONLY) -->
+      <div class="panel" id="panel-set-limit">
+        <div class="ph"><div class="pt">Batas Izin</div><div class="ps">Atur batas waktu izin keluar dan jumlah maksimal staff yang boleh izin keluar bersamaan</div></div>
+        <div class="scard-wrap"><div class="scard">
+          <div class="msg-err" id="blErr"></div>
+          <div class="msg-ok" id="blOk"></div>
+          <div class="field">
+            <label>Batas Waktu Izin (menit)</label>
+            <input id="blMinutes" type="number" min="1" max="180" placeholder="Contoh: 20"/>
+            <div class="fhint">Staff akan tercatat melebihi batas jika tidak kembali dalam waktu ini.</div>
+          </div>
+          <div class="field">
+            <label>Batas Staff Keluar Bersamaan</label>
+            <select id="blMaxOut">
+              <option value="1">1 orang</option>
+              <option value="2">2 orang</option>
+              <option value="3">3 orang</option>
+              <option value="4">4 orang</option>
+              <option value="5">5 orang</option>
+            </select>
+            <div class="fhint">Maksimal 5 staff yang boleh izin keluar dalam waktu bersamaan.</div>
+          </div>
+          <button class="btn-primary" id="btnSaveLimit">Simpan Pengaturan</button>
+        </div></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1884,11 +1911,41 @@ function loadExtra() {
     var r = lsGet("l99_extra");
     if (r) { var ex = JSON.parse(r); for (var k in ex) USERS[k] = ex[k]; }
   } catch(e) {}
+  loadLimitSettings();
 }
 function saveExtra() {
   var ex = {};
   for (var k in USERS) { if (BASE_IDS.indexOf(k) === -1) ex[k] = USERS[k]; }
   lsSet("l99_extra", JSON.stringify(ex));
+}
+
+function loadLimitSettings() {
+  var m = lsGet("l99_batas_menit");
+  var mo = lsGet("l99_batas_maxout");
+  var menit = m ? parseInt(m, 10) : 20;
+  var maxOut = mo ? parseInt(mo, 10) : MAX_OUT_CAP;
+  if (!menit || menit < 1) menit = 20;
+  if (!maxOut || maxOut < 1) maxOut = MAX_OUT_CAP;
+  if (maxOut > MAX_OUT_CAP) maxOut = MAX_OUT_CAP;
+  BATAS_MS = menit * 60 * 1000;
+  MAX_OUT = maxOut;
+}
+function saveLimitSettings(menit, maxOut) {
+  if (maxOut > MAX_OUT_CAP) maxOut = MAX_OUT_CAP;
+  lsSet("l99_batas_menit", String(menit));
+  lsSet("l99_batas_maxout", String(maxOut));
+  loadLimitSettings();
+}
+function countCurrentlyOut() {
+  var today = todayStr(), cnt = 0;
+  for (var uid in USERS) {
+    var r = lsGet(sk(uid)); if (!r) continue;
+    try {
+      var d = JSON.parse(r);
+      if (d.tanggal === today && d.sedangDiluar) cnt++;
+    } catch(e) {}
+  }
+  return cnt;
 }
 
 // =========================================
@@ -1898,6 +1955,8 @@ var CU = null;
 var S = { terpakai:0, sedangDiluar:false, waktuKeluar:null, waktuKeluarMs:null, history:[] };
 var TELAT = [];
 var BATAS_MS = 20 * 60 * 1000;
+var MAX_OUT_CAP = 5;
+var MAX_OUT = 5;
 var CIRC = 2 * Math.PI * 43; // r=43
 var _cdInt = null;
 
@@ -2105,15 +2164,22 @@ function showAdminMenus() {
     var el = g(id);
     if (el) { if (acc[map[id]]) el.classList.remove("hidden"); else el.classList.add("hidden"); }
   }
+  // Batas Izin: khusus Admin, tidak mengikuti hak akses staff biasa
+  var limitEl = g("sb-set-limit");
+  if (limitEl) { if (isA) limitEl.classList.remove("hidden"); else limitEl.classList.add("hidden"); }
 }
 
 // =========================================
 // PANEL NAVIGATION
 // =========================================
-var panelNames = ["dash","riwayat","monit","staff","hist-admin","set-pw","set-name","set-prof","set-add","set-reset"];
-var sbItems = ["sb-dash","sb-riwayat","sb-monit","sb-staff","sb-hist-admin","sb-set-pw","sb-set-name","sb-set-prof","sb-set-add","sb-set-reset"];
+var panelNames = ["dash","riwayat","monit","staff","hist-admin","set-pw","set-name","set-prof","set-add","set-reset","set-limit"];
+var sbItems = ["sb-dash","sb-riwayat","sb-monit","sb-staff","sb-hist-admin","sb-set-pw","sb-set-name","sb-set-prof","sb-set-add","sb-set-reset","sb-set-limit"];
 
 function goPanel(name) {
+  if (name === "set-limit" && (!CU || CU.role !== "Admin")) {
+    toast("Hanya admin yang bisa mengakses menu ini.", "error");
+    name = "dash";
+  }
   for (var i = 0; i < panelNames.length; i++) {
     var pe = g("panel-" + panelNames[i]);
     if (pe) pe.classList.remove("active");
@@ -2138,6 +2204,11 @@ function goPanel(name) {
   if (name === "set-reset") {
     g("srId").value = ""; g("srHint").classList.add("hidden"); hideEl("srForm");
     hideMsg("srErr"); hideMsg("srOk");
+  }
+  if (name === "set-limit") {
+    g("blMinutes").value = String(BATAS_MS / 60000);
+    g("blMaxOut").value = String(MAX_OUT);
+    hideMsg("blErr"); hideMsg("blOk");
   }
   if (name === "set-prof") loadProfForm();
   if (name === "staff") renderStaffTable();
@@ -2517,6 +2588,7 @@ function updateUI() {
 function aksKeluar() {
   if (S.sedangDiluar) { toast("Kamu sedang di luar! Kembali masuk dulu.", "warn"); return; }
   if (S.terpakai >= CU.kuota) { toast("Kuota izin hari ini sudah habis!", "error"); return; }
+  if (countCurrentlyOut() >= MAX_OUT) { toast("Batas staff keluar bersamaan sudah penuh (maks " + MAX_OUT + " orang). Coba lagi nanti.", "error"); return; }
   var t = nowStr();
   S.terpakai++; S.sedangDiluar = true; S.waktuKeluar = t; S.waktuKeluarMs = Date.now();
   S.history.push({ type:"keluar", time:t, ms:Date.now() });
@@ -3155,6 +3227,7 @@ function init() {
   g("sb-set-prof").addEventListener("click", function() { goPanel("set-prof"); });
   g("sb-set-add").addEventListener("click", function() { goPanel("set-add"); });
   g("sb-set-reset").addEventListener("click", function() { goPanel("set-reset"); });
+  g("sb-set-limit").addEventListener("click", function() { goPanel("set-limit"); });
   g("sbGH").addEventListener("click", toggleSBG);
   g("btnSbLogout").addEventListener("click", doLogout);
 
@@ -3205,6 +3278,19 @@ function init() {
   g("btnSrReset").addEventListener("click", doStaffResetSave);
   eyeToggle("eyeSr1", "srPw1");
   strBar("srPw1", "srStr");
+
+  // Batas Izin event listener (admin only)
+  g("btnSaveLimit").addEventListener("click", function() {
+    hideMsg("blErr"); hideMsg("blOk");
+    if (!CU || CU.role !== "Admin") { showMsg("blErr", "Hanya admin yang bisa mengubah pengaturan ini."); return; }
+    var menit = parseInt(g("blMinutes").value, 10);
+    var maxOut = parseInt(g("blMaxOut").value, 10);
+    if (!menit || menit < 1 || menit > 180) { showMsg("blErr", "Masukkan batas waktu izin yang valid (1-180 menit)."); return; }
+    if (!maxOut || maxOut < 1 || maxOut > MAX_OUT_CAP) { showMsg("blErr", "Batas staff keluar bersamaan maksimal " + MAX_OUT_CAP + " orang."); return; }
+    saveLimitSettings(menit, maxOut);
+    showMsg("blOk", "Pengaturan batas izin berhasil disimpan.");
+    toast("Pengaturan batas izin disimpan.", "success");
+  });
 
   // Modals management
   g("btnCloseEmod").addEventListener("click", closeEmod);
