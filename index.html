@@ -1874,6 +1874,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.015); }
       <label class="akm-check"><input type="checkbox" id="akmHist"/><span>History Absen</span></label>
       <div class="akm-desc">Lihat & export riwayat absen semua staff</div>
     </div>
+    <div class="akm-opt">
+      <label class="akm-check"><input type="checkbox" id="akmReset"/><span>Reset Password Staff</span></label>
+      <div class="akm-desc">Reset password akun staff lain</div>
+    </div>
     <div style="display:flex;gap:.52rem;margin-top:1rem">
       <button class="btn-ghost" id="btnCancelAkm">Batal</button>
       <button class="btn-primary" id="btnSaveAkm">Simpan Akses</button>
@@ -2214,26 +2218,26 @@ function toggleSBG() { g("sbGH").classList.toggle("open"); g("sbGB").classList.t
 
 function getStaffAccess(uid) {
   var raw = lsGet("l99_access_" + uid);
-  if (!raw) return { monit:false, staff:false, hist:false };
+  if (!raw) return { monit:false, staff:false, hist:false, reset:false };
   var d = null;
   try { d = JSON.parse(raw); } catch(e) { d = null; }
   if (d && typeof d === "object") {
-    return { monit: !!d.monit, staff: !!d.staff, hist: !!d.hist };
+    return { monit: !!d.monit, staff: !!d.staff, hist: !!d.hist, reset: !!d.reset };
   }
   // backward-compat: old flag was a plain "1"/"0" granting everything
   var all = raw === "1";
-  return { monit: all, staff: all, hist: all };
+  return { monit: all, staff: all, hist: all, reset: all };
 }
 function showAdminMenus() {
   if (!CU) return;
   var isA = CU.role === "Admin";
-  var acc = isA ? { monit:true, staff:true, hist:true } : getStaffAccess(CU.id);
+  var acc = isA ? { monit:true, staff:true, hist:true, reset:true } : getStaffAccess(CU.id);
   var map = { 
     "sb-monit": "monit", 
     "sb-staff": "staff", 
     "sb-hist-admin": "hist",
     "sb-set-add": "staff",
-    "sb-set-reset": "staff"
+    "sb-set-reset": "reset"
   };
   for (var id in map) {
     var el = g(id);
@@ -2976,7 +2980,7 @@ function renderStaffTable() {
       wrap.appendChild(editBtn); wrap.appendChild(delBtn);
       if (role !== "Admin" && CU && CU.role === "Admin") {
         var acc = getStaffAccess(uid);
-        var hasAnyAccess = acc.monit || acc.staff || acc.hist;
+        var hasAnyAccess = acc.monit || acc.staff || acc.hist || acc.reset;
         var accBtn = mkEl("button", "bsm " + (hasAnyAccess ? "bacc-on" : "bacc-off"), hasAnyAccess ? "Kelola Akses" : "Beri Akses");
         accBtn.dataset.uid = uid;
         accBtn.addEventListener("click", function() { openAksesModal(this.dataset.uid); });
@@ -2999,14 +3003,15 @@ function openAksesModal(uid) {
   g("akmMonit").checked = acc.monit;
   g("akmStaff").checked = acc.staff;
   g("akmHist").checked = acc.hist;
+  g("akmReset").checked = acc.reset;
   g("akmOvl").classList.add("open");
 }
 function closeAksesModal() { g("akmOvl").classList.remove("open"); }
 function doSaveAksesModal() {
   var uid = g("akmUid").value; if (!uid) return;
-  var acc = { monit: g("akmMonit").checked, staff: g("akmStaff").checked, hist: g("akmHist").checked };
+  var acc = { monit: g("akmMonit").checked, staff: g("akmStaff").checked, hist: g("akmHist").checked, reset: g("akmReset").checked };
   lsSet("l99_access_" + uid, JSON.stringify(acc));
-  var anyGranted = acc.monit || acc.staff || acc.hist;
+  var anyGranted = acc.monit || acc.staff || acc.hist || acc.reset;
   toast(anyGranted ? "Akses untuk staff ini diperbarui" : "Semua akses admin dicabut", anyGranted ? "success" : "warn");
   closeAksesModal();
   renderStaffTable();
