@@ -76,6 +76,11 @@
             </div>
         </div>
 
+        <!-- Area Gambar Panduan (Muncul dinamis jika Cara Bet 4D 3D 2D dipilih) -->
+        <div id="image-container" class="mt-4">
+            <img src="https://i.imgur.com/sAT9he1.png" alt="Panduan Cara Bet 4D 3D 2D" class="w-full rounded-xl border border-blue-500/30 shadow-md">
+        </div>
+
         <!-- Tombol Salin Gambar di bawah dropdown -->
         <div class="mt-4">
             <button id="copy-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm py-2.5 px-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2">
@@ -95,6 +100,7 @@
         const options = document.querySelectorAll('.option');
         const copyBtn = document.getElementById('copy-btn');
         const statusMsg = document.getElementById('status-msg');
+        const imageContainer = document.getElementById('image-container');
 
         // Toggle buka/tutup dropdown
         dropdownBtn.addEventListener('click', () => {
@@ -116,6 +122,13 @@
                     
                     option.classList.add('bg-blue-600/30', 'border-l-4', 'border-blue-500', 'font-medium', 'text-white');
                     option.classList.remove('text-slate-300');
+
+                    // Tampilkan atau sembunyikan gambar berdasarkan pilihan
+                    if (value === "- Cara Bet 4D 3D 2D") {
+                        imageContainer.classList.remove('hidden');
+                    } else {
+                        imageContainer.classList.add('hidden');
+                    }
                 }
                 
                 dropdownMenu.classList.add('hidden');
@@ -135,7 +148,6 @@
         copyBtn.addEventListener('click', async () => {
             const captureArea = document.getElementById('capture-area');
             
-            // Sembunyikan dropdown list sementara jika sedang terbuka agar tidak ikut tercapture jika melebihi batas
             dropdownMenu.classList.add('hidden');
             dropdownArrow.classList.remove('rotate-180');
 
@@ -146,7 +158,8 @@
 
                 const canvas = await html2canvas(captureArea, {
                     backgroundColor: '#0f172a',
-                    scale: 2 // Meningkatkan resolusi gambar
+                    scale: 2,
+                    useCORS: true // Memastikan gambar eksternal dari Imgur dapat dimuat oleh html2canvas
                 });
 
                 canvas.toBlob(async (blob) => {
@@ -158,7 +171,6 @@
                         statusMsg.classList.remove('text-slate-400');
                         statusMsg.classList.add('text-green-400');
                     } catch (clipErr) {
-                        // Fallback jika Clipboard API diblokir browser: Unduh sebagai file
                         const link = document.createElement('a');
                         link.download = 'panduan-betting-togel.png';
                         link.href = canvas.toDataURL('image/png');
