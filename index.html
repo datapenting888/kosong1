@@ -10,107 +10,111 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { background-color: #0b0f19; color: #ffffff; font-family: 'Segoe UI', sans-serif; }
-        /* Custom scrollbar untuk menu dropdown */
-        #options-list::-webkit-scrollbar { width: 6px; }
-        #options-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center py-10 px-4">
+<body class="min-h-screen flex flex-col items-center justify-start py-10 px-4">
 
-    <!-- Kontainer Utama (Area yang akan disalin) -->
-    <div id="capture-area" class="w-full max-w-sm bg-[#0f172a] border border-blue-600/40 rounded-2xl p-5 shadow-2xl">
+    <!-- Kontainer Utama -->
+    <div id="capture-area" class="w-full max-w-xl bg-[#0f172a] border border-blue-600/40 rounded-2xl p-5 shadow-2xl">
         
-        <h1 class="text-lg font-bold text-center mb-5 text-blue-400 uppercase tracking-wider">Panduan Betting Togel</h1>
+        <h1 class="text-xl font-bold text-center mb-6 text-blue-400">PANDUAN CARA BETTING TOGEL</h1>
 
-        <!-- Dropdown & Pencarian -->
+        <!-- Dropdown -->
         <div class="relative" id="dropdown-container">
-            <button id="dropdown-btn" class="w-full bg-[#131e38] border border-blue-500/50 text-white text-sm py-3 px-4 rounded-xl flex items-center justify-between shadow-inner hover:border-blue-400 transition-colors">
-                <span id="selected-value" class="truncate">- Cara Bet 4D 3D 2D</span>
+            <button id="dropdown-btn" class="w-full bg-[#131e38] border border-blue-500/50 text-white text-sm py-3 px-4 rounded-xl flex items-center justify-between shadow-inner">
+                <span id="selected-value">- Cara Bet 4D 3D 2D</span>
                 <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
 
-            <!-- Menu Dropdown -->
-            <div id="dropdown-menu" class="absolute w-full mt-2 bg-[#101932] border border-blue-500/40 rounded-xl shadow-2xl z-50 hidden overflow-hidden">
-                <!-- Input Pencarian -->
-                <div class="p-2 border-b border-slate-700">
-                    <input type="text" id="search-input" placeholder="Cari panduan..." class="w-full bg-[#0b0f19] border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
-                </div>
-                
-                <!-- Daftar Opsi -->
-                <div id="options-list" class="max-h-60 overflow-y-auto">
-                    <!-- Opsi akan muncul di sini -->
-                </div>
+            <!-- List Opsi -->
+            <div id="dropdown-menu" class="absolute w-full mt-2 bg-[#101932] border border-blue-500/40 rounded-xl shadow-2xl max-h-72 overflow-y-auto z-50 hidden">
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet 4D 3D 2D" data-img="https://i.ibb.co/V0KGhwTb/image.png" data-link="https://ibb.co/dshv3mDX">- Cara Bet 4D 3D 2D</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet Bb" data-img="https://i.ibb.co/s9tXg4vF/image.png" data-link="https://ibb.co/k2MPGTgh">- Cara Bet Bb</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet Bbfs (Bb Campuran)" data-img="https://i.ibb.co/9H4G7h7G/image.png" data-link="https://ibb.co/0y9QxKxQ">- Cara Bet Bbfs (Bb Campuran)</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet Angka Tarung" data-img="https://i.ibb.co/hRhNJgTJ/image.png" data-link="https://ibb.co/5Wt3g1Jg">- Cara Bet Angka Tarung</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet Fast 4D" data-img="https://i.ibb.co/s95Fgr7L/image.png" data-link="https://ibb.co/0yBfn35P">- Cara Bet Fast 4D</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet 4D, 3D, 2D Easy" data-img="https://i.ibb.co/hR5m1LDb/image.png" data-link="https://ibb.co/xSv78XJW">- Cara Bet 4D, 3D, 2D Easy</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet 3D" data-img="https://i.ibb.co/fGn6sdt3/image.png" data-link="https://ibb.co/gFPqxZw0">- Cara Bet 3D</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet 2D Belakang" data-img="https://i.ibb.co/d0t6Z2Vp/image.png" data-link="https://ibb.co/MDfpdVt1">- Cara Bet 2D Belakang</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet 2D Depan" data-img="https://i.ibb.co/1t36P9NV/image.png" data-link="https://ibb.co/JwNQGzTL">- Cara Bet 2D Depan</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet 2D Tengah" data-img="https://i.ibb.co/v6nRBhCY/image.png" data-link="https://ibb.co/ksCvyJV1">- Cara Bet 2D Tengah</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet Colok Bebas" data-img="https://i.ibb.co/4R97Pb7c/image.png" data-link="https://ibb.co/fdB2432b">- Cara Bet Colok Bebas</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet Colok Bebas 2D" data-img="https://i.ibb.co/vCNCR6gj/image.png" data-link="https://ibb.co/JWYWgw0s">- Cara Bet Colok Bebas 2D</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bet Colok Naga" data-img="https://i.ibb.co/zHSryqkN/image.png" data-link="https://ibb.co/1J9LDFSb">- Cara Bet Colok Naga</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bermain Colok Jitu" data-img="https://i.ibb.co/yBRY8TFh/image.png" data-link="https://ibb.co/wrLwKHhJ">- Cara Bermain Colok Jitu</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bermain Tengah Tepi" data-img="https://i.ibb.co/1Y47xvmT/image.png" data-link="https://ibb.co/DPjznVRQ">- Cara Bermain Tengah Tepi</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bermain Togel Menu Bet [Dasar]" data-img="https://i.ibb.co/pryhwZKy/image.png" data-link="https://ibb.co/93tZg24t">- Cara Bermain Togel Menu Bet [Dasar]</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bermain Dan Bet Togel 50-50" data-img="https://i.ibb.co/JwDv3g8j/image.png" data-link="https://ibb.co/nNx7Pt4M">- Cara Bermain Dan Bet Togel 50-50</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Betting Shio" data-img="https://i.ibb.co/Gvr0qVKt/image.png" data-link="https://ibb.co/27pyTjDs">- Cara Betting Shio</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bermain Silang Homo" data-img="https://i.ibb.co/7tL8ZQNf/image.png" data-link="https://ibb.co/23HmCSY9">- Cara Bermain Silang Homo</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer border-b border-slate-800" data-value="- Cara Bermain Kembang Kempis" data-img="https://i.ibb.co/TxNvS83h/image.png" data-link="https://ibb.co/G4rxL2SP">- Cara Bermain Kembang Kempis</div>
+                <div class="option px-4 py-3 hover:bg-[#19284a] cursor-pointer" data-value="- Cara Bermain Kombinasi" data-img="https://i.ibb.co/2YLD2CzZ/image.png" data-link="https://ibb.co/cXpG5ZWY">- Cara Bermain Kombinasi</div>
             </div>
         </div>
 
+        <!-- Area Gambar (Dinamis) -->
+        <div id="image-container" class="mt-5">
+            <a id="img-link" href="https://ibb.co/dshv3mDX" target="_blank">
+                <img id="main-img" src="https://i.ibb.co/V0KGhwTb/image.png" alt="Panduan" class="w-full rounded-xl border border-blue-500/30 shadow-lg">
+            </a>
+        </div>
+
         <!-- Tombol Salin -->
-        <div class="mt-6">
-            <button id="copy-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm">
+        <div class="mt-5">
+            <button id="copy-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2">
                 <span>📋</span> SALIN GAMBAR
             </button>
         </div>
     </div>
 
     <script>
-        const optionsData = [
-            "- Cara Bet 4D 3D 2D", "- Cara Bet Bb", "- Cara Bet Bbfs (Bb Campuran)", 
-            "- Cara Bet Angka Tarung", "- Cara Bet Fast 4D", "- Cara Bet 4D, 3D, 2D Easy", 
-            "- Cara Bet 3D", "- Cara Bet 2D Belakang", "- Cara Bet 2D Depan", 
-            "- Cara Bet 2D Tengah", "- Cara Bet Colok Bebas", "- Cara Bet Colok Bebas 2D", 
-            "- Cara Bet Colok Naga", "- Cara Bermain Colok Jitu", "- Cara Bermain Tengah Tepi", 
-            "- Cara Bermain Togel Menu Bet [Dasar]", "- Cara Bermain Dan Bet Togel 50-50", 
-            "- Cara Betting Shio", "- Cara Bermain Silang Homo", "- Cara Bermain Kembang Kempis", 
-            "- Cara Bermain Kombinasi"
-        ];
-
         const dropdownBtn = document.getElementById('dropdown-btn');
         const dropdownMenu = document.getElementById('dropdown-menu');
-        const searchInput = document.getElementById('search-input');
-        const optionsList = document.getElementById('options-list');
         const selectedValue = document.getElementById('selected-value');
+        const mainImg = document.getElementById('main-img');
+        const imgLink = document.getElementById('img-link');
+        const options = document.querySelectorAll('.option');
         const copyBtn = document.getElementById('copy-btn');
 
-        // Render Opsi
-        function renderOptions(filter = "") {
-            optionsList.innerHTML = "";
-            optionsData.forEach(item => {
-                if (item.toLowerCase().includes(filter.toLowerCase())) {
-                    const div = document.createElement('div');
-                    div.className = "option px-4 py-3 hover:bg-[#19284a] cursor-pointer text-sm border-b border-slate-800 transition-colors";
-                    div.textContent = item;
-                    div.onclick = () => {
-                        selectedValue.textContent = item;
-                        dropdownMenu.classList.add('hidden');
-                        searchInput.value = "";
-                        renderOptions();
-                    };
-                    optionsList.appendChild(div);
-                }
-            });
-        }
-
-        // Event Listeners
+        // Toggle Dropdown
         dropdownBtn.addEventListener('click', () => dropdownMenu.classList.toggle('hidden'));
-        searchInput.addEventListener('input', (e) => renderOptions(e.target.value));
 
-        // Salin Gambar
+        // Handle Pilihan
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                selectedValue.textContent = option.getAttribute('data-value');
+                mainImg.src = option.getAttribute('data-img');
+                imgLink.href = option.getAttribute('data-link');
+                dropdownMenu.classList.add('hidden');
+            });
+        });
+
+        // Salin ke Clipboard menggunakan html2canvas
         copyBtn.addEventListener('click', async () => {
             try {
                 const canvas = await html2canvas(document.getElementById('capture-area'), {
-                    backgroundColor: '#0f172a',
+                    backgroundColor: '#0b0f19',
                     scale: 2,
                     useCORS: true
                 });
+
                 canvas.toBlob(async (blob) => {
                     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                    copyBtn.classList.replace('bg-blue-600', 'bg-green-600');
-                    setTimeout(() => copyBtn.classList.replace('bg-green-600', 'bg-blue-600'), 2000);
+                    
+                    // Ubah tombol jadi hijau jika berhasil
+                    copyBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                    copyBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+                    
+                    // Kembalikan ke warna semula setelah 2 detik
+                    setTimeout(() => {
+                        copyBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+                        copyBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                    }, 2000);
                 });
-            } catch (err) { alert("Gagal menyalin."); }
+            } catch (err) {
+                alert("Gagal menyalin gambar.");
+            }
         });
-
-        // Initialize
-        renderOptions();
     </script>
 </body>
 </html>
