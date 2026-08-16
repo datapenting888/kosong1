@@ -134,50 +134,129 @@
   .btn.small{ padding:6px 10px; font-size:12px; border-radius:8px; }
 
   /* ---------- Auth screen ---------- */
+  @keyframes authBlobFloat{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    33%{ transform:translate(24px,-18px) scale(1.08); }
+    66%{ transform:translate(-18px,14px) scale(0.96); }
+  }
+  @keyframes authCardIn{
+    from{ opacity:0; transform:translateY(14px) scale(0.98); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
   #authScreen{
     flex:1;
     display:flex;
     align-items:center;
     justify-content:center;
     padding:24px;
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(124,92,255,0.16), transparent 55%),
+      radial-gradient(circle at 82% 78%, rgba(219,195,110,0.10), transparent 50%),
+      var(--bg-app);
+  }
+  #authScreen::before, #authScreen::after{
+    content:'';
+    position:absolute;
+    width:340px; height:340px;
+    border-radius:50%;
+    filter:blur(70px);
+    opacity:0.5;
+    pointer-events:none;
+    z-index:0;
+    animation:authBlobFloat 14s ease-in-out infinite;
+  }
+  #authScreen::before{
+    top:-90px; left:-90px;
+    background:radial-gradient(circle, #7c5cff, transparent 70%);
+  }
+  #authScreen::after{
+    bottom:-100px; right:-80px;
+    background:radial-gradient(circle, var(--accent-emas), transparent 70%);
+    animation-delay:-7s;
+  }
+  html.light-theme #authScreen{
+    background:
+      radial-gradient(circle at 18% 20%, rgba(124,92,255,0.10), transparent 55%),
+      radial-gradient(circle at 82% 78%, rgba(184,137,47,0.10), transparent 50%),
+      var(--bg-app);
   }
   .auth-card{
+    position:relative;
+    z-index:1;
     width:100%;
     max-width:380px;
-    background:var(--bg-card);
+    background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0)) , var(--bg-card);
+    background-blend-mode:overlay;
     border:1px solid var(--border-soft);
-    border-radius:16px;
-    padding:28px 26px;
+    border-radius:20px;
+    padding:32px 28px;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    backdrop-filter:blur(14px);
+    animation:authCardIn .45s cubic-bezier(.2,.8,.2,1);
   }
+  .auth-logo{
+    width:54px; height:54px;
+    border-radius:16px;
+    margin:0 auto 16px;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#7c5cff,#5b7cff);
+    box-shadow:0 10px 24px -8px rgba(124,92,255,0.55);
+  }
+  .auth-logo svg{ width:26px; height:26px; }
   .auth-card h1{
     font-family:'Bree Serif', serif;
-    font-size:22px;
+    font-size:23px;
     margin:0 0 4px;
+    text-align:center;
+    background:linear-gradient(90deg,#f5f3cb,#dbc36e);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
   }
   .auth-card p.sub{
-    margin:0 0 20px;
+    margin:0 0 22px;
     font-size:13px;
     color:var(--text-dim);
+    text-align:center;
   }
-  .field{ margin-bottom:14px; }
+  .field{ margin-bottom:15px; }
   .field label{
     display:block;
     font-size:12px;
     color:var(--text-dim);
     margin-bottom:6px;
     letter-spacing:0.3px;
+    font-weight:600;
+  }
+  .field .input-wrap{ position:relative; }
+  .field .input-icon{
+    position:absolute;
+    top:50%; left:12px;
+    transform:translateY(-50%);
+    width:17px; height:17px;
+    color:var(--text-dim);
+    pointer-events:none;
+    transition:color .15s ease;
   }
   .field input{
     width:100%;
-    background:#0f0f1a;
+    background:rgba(127,127,127,0.06);
     border:1px solid var(--border-soft);
     color:var(--text-light);
-    padding:11px 12px;
-    border-radius:10px;
+    padding:12px 12px 12px 38px;
+    border-radius:12px;
     font-size:14px;
     outline:none;
+    transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
   }
-  .field input:focus{ border-color:var(--accent-emas); }
+  .field input:focus{
+    border-color:var(--accent-emas);
+    box-shadow:0 0 0 3px rgba(219,195,110,0.16);
+    background:rgba(219,195,110,0.05);
+  }
+  .field input:focus ~ .input-icon, .field .input-wrap:focus-within .input-icon{ color:var(--accent-emas); }
   .field input:disabled{ opacity:0.65; cursor:not-allowed; }
   .field .pw-wrap{ position:relative; }
   .field .pw-wrap input{ padding-right:40px; }
@@ -203,10 +282,20 @@
   .field .pw-toggle .eye-off{ display:none; }
   .field .pw-toggle.showing .eye-on{ display:none; }
   .field .pw-toggle.showing .eye-off{ display:block; }
-  .auth-actions{ margin-top:18px; }
-  .auth-actions .btn{ width:100%; padding:11px; font-size:14px; }
+  .auth-actions{ margin-top:20px; }
+  .auth-actions .btn{
+    width:100%;
+    padding:12.5px;
+    font-size:14.5px;
+    border-radius:12px;
+    letter-spacing:0.2px;
+    box-shadow:0 12px 24px -10px rgba(91,124,255,0.55);
+    transition:filter .15s ease, transform .15s ease, box-shadow .15s ease;
+  }
+  .auth-actions .btn:hover{ transform:translateY(-1px); box-shadow:0 16px 28px -10px rgba(91,124,255,0.65); }
+  .auth-actions .btn:active{ transform:translateY(0); }
   .auth-toggle{
-    margin-top:16px;
+    margin-top:18px;
     text-align:center;
     font-size:13px;
     color:var(--text-dim);
@@ -216,7 +305,7 @@
     cursor:pointer;
     font-weight:600;
   }
-  #authToggleLink{ color:#0a7a0a; }
+  #authToggleLink{ color:#3ddc5b; }
   .auth-error{
     background:rgba(224,82,82,0.12);
     border:1px solid rgba(224,82,82,0.4);
@@ -1066,6 +1155,9 @@
 <!-- ============ AUTH SCREEN ============ -->
 <div id="authScreen" style="display:none;">
   <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
     <h1 id="authTitle" style="font-family:Arial, Helvetica, sans-serif;">Silahkan Login</h1>
     <p class="sub" id="authSub"></p>
 
@@ -1074,15 +1166,22 @@
 
     <div class="field" id="fieldName" style="display:none;">
       <label>Nama Tampilan</label>
-      <input type="text" id="inputName" placeholder="Nama yang dilihat teman kamu">
+      <div class="input-wrap">
+        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <input type="text" id="inputName" placeholder="Nama yang dilihat teman kamu">
+      </div>
     </div>
     <div class="field">
       <label>Email</label>
-      <input type="email" id="inputEmail" placeholder="nama@email.com" autocomplete="username">
+      <div class="input-wrap">
+        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6 12 13 2 6"/><path d="M2 6h20v12H2z"/></svg>
+        <input type="email" id="inputEmail" placeholder="nama@email.com" autocomplete="username">
+      </div>
     </div>
     <div class="field">
       <label>Password</label>
-      <div class="pw-wrap">
+      <div class="pw-wrap input-wrap">
+        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <input type="password" id="inputPassword" placeholder="Minimal 6 karakter" autocomplete="current-password">
         <button type="button" class="pw-toggle" data-target="inputPassword" aria-label="Lihat/sembunyikan password">
           <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
