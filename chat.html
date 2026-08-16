@@ -2842,23 +2842,49 @@
     let chat = chatsIndex[chatId];
     let isPrivate = chat && chat.type === 'private';
     let msg = simpleConfirm
-      ? 'Hapus semua pesan obrolan dengan "' + name + '"?'
+      ? 'Hapus obrolan dengan "' + name + '"? Pesan yang masih terlihat di layar kamu akan dihapus (tersinkron juga di sisi "' + name + '").'
       : (isPrivate
-        ? 'Apakah anda ingin hapus semua pesan obrolan dengan "' + name + '"? Nama/teman ini akan tetap ada di daftar chat kamu, hanya riwayat pesannya saja yang dihapus.'
+        ? 'Apakah anda ingin hapus obrolan dengan "' + name + '"? Nama/teman ini akan tetap ada di daftar chat kamu, hanya pesan yang masih terlihat di layar kamu saja yang dihapus (tersinkron juga di sisi "' + name + '").'
         : 'Apakah anda ingin hapus semua pesan obrolan grup "' + name + '"? Grup dan anggotanya akan tetap ada seperti biasa, hanya riwayat pesannya saja yang dihapus untuk semua anggota.');
     if (!confirm(msg)) return;
 
-    // Baik chat privat maupun grup: yang dihapus HANYA riwayat
-    // pesan/obrolannya saja. Chat/grup itu sendiri (data chat, nama
-    // teman/grup, keanggotaan) tetap ada dan tetap muncul di daftar
-    // chat semua pihak — cuma kosong tanpa pesan. Untuk menghapus
-    // grup sepenuhnya (bukan cuma pesannya), pakai "Hapus grup" di
-    // Pengaturan Grup.
-    let updates = {};
-    updates['chats/' + chatId + '/messages'] = null;
-    updates['chats/' + chatId + '/lastMessage'] = '';
-    updates['chats/' + chatId + '/lastMessageAt'] = null;
-    db.ref().update(updates);
+    // Chat/grup itu sendiri (data chat, nama teman/grup, keanggotaan)
+    // tetap ada dan tetap muncul di daftar chat semua pihak. Untuk
+    // menghapus grup sepenuhnya (bukan cuma pesannya), pakai
+    // "Hapus grup" di Pengaturan Grup.
+    //
+    // PENTING: yang dihapus di sini HANYA pesan yang masih "tersisa"
+    // / terlihat di layar SAYA saat ini (createdAt-nya setelah waktu
+    // saya terakhir menghapus obrolan ini sendiri lewat "Hapus
+    // obrolan" di daftar chat — chats/{chatId}/clearedFor/{uid saya}).
+    // Karena pesan-pesan itu benar-benar dihapus dari database, aksi
+    // ini otomatis tersinkron: pesan yang sama juga ikut hilang di
+    // layar lawan bicara. Tapi pesan-pesan LEBIH LAMA yang sudah lebih
+    // dulu saya sembunyikan sendiri (dan mungkin masih terlihat di
+    // sisi lawan bicara, karena mereka belum menghapusnya) TIDAK ikut
+    // terhapus di sini — supaya riwayat yang sudah ada di sisi lawan
+    // bicara sebelumnya tidak hilang tanpa sepengetahuan mereka.
+    db.ref('chats/' + chatId + '/clearedFor/' + currentUser.uid).once('value').then(function(clearedSnap){
+      let myClearedAt = clearedSnap.val() || 0;
+      let msgsRef = db.ref('chats/' + chatId + '/messages');
+      let msgsQuery = myClearedAt
+        ? msgsRef.orderByChild('createdAt').startAfter(myClearedAt)
+        : msgsRef;
+      return msgsQuery.once('value').then(function(msgsSnap){
+        let updates = {};
+        msgsSnap.forEach(function(child){
+          updates['chats/' + chatId + '/messages/' + child.key] = null;
+        });
+        return db.ref().update(updates);
+      });
+    }).then(function(){
+      // Hitung ulang preview pesan terakhir berdasarkan sisa pesan yang
+      // benar-benar masih ada di database (bisa jadi pesan lama milik
+      // lawan bicara yang sengaja tidak ikut terhapus di atas).
+      refreshLastMessagePreview(chatId);
+    }).catch(function(err){
+      alert('Gagal menghapus obrolan: ' + err.message);
+    });
     // Chat/grup tetap terbuka & tetap ada di daftar; pesan-pesannya
     // akan otomatis hilang dari layar lewat listener child_removed
     // kalau chat ini sedang dibuka.
