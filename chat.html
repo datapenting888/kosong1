@@ -792,9 +792,19 @@
     font-size:10px;
     opacity:0.65;
     margin-top:2px;
-    display:block;
-    text-align:right;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:3px;
   }
+  .msg-ticks{
+    display:inline-flex;
+    align-items:center;
+    flex-shrink:0;
+    color:#ffffff;
+  }
+  .msg-ticks svg{ display:block; }
+  .msg-ticks.read{ color:#53bdeb; }
   .bubble .edited-tag{
     font-size:10px;
     opacity:0.6;
@@ -1617,6 +1627,39 @@
   }
 
   // ---------------------------------------------------------------
+  // Presence (online/offline) untuk centang pesan ala WhatsApp.
+  // Selama koneksi Firebase hidup, users/{uid}/online diset true;
+  // onDisconnect otomatis menyetelnya kembali ke false begitu koneksi
+  // terputus (tutup tab, sinyal hilang, dsb), tanpa perlu logout manual.
+  // ---------------------------------------------------------------
+  let presenceConnectedRef = null;
+  let presenceConnectedCb = null;
+  function setupPresence(uid){
+    teardownPresenceListener();
+    let myStatusRef = db.ref('users/' + uid);
+    presenceConnectedRef = db.ref('.info/connected');
+    presenceConnectedCb = function(snap){
+      if (snap.val() !== true) return;
+      myStatusRef.child('online').onDisconnect().set(false);
+      myStatusRef.child('lastSeen').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+      myStatusRef.update({ online: true, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+    };
+    presenceConnectedRef.on('value', presenceConnectedCb);
+  }
+  function teardownPresenceListener(){
+    if (presenceConnectedRef && presenceConnectedCb){
+      presenceConnectedRef.off('value', presenceConnectedCb);
+    }
+    presenceConnectedRef = null;
+    presenceConnectedCb = null;
+  }
+  function goOffline(uid){
+    teardownPresenceListener();
+    if (!uid) return;
+    db.ref('users/' + uid).update({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+  }
+
+  // ---------------------------------------------------------------
   // State
   // ---------------------------------------------------------------
   let currentUser = null;      // { uid, name, email }
@@ -1995,6 +2038,7 @@
         initAllUsersListener();
         startInactivityWatcher();
         updateConnIndicator();
+        setupPresence(currentUser.uid);
       }).catch(function(err){
         // Kalau gagal ambil profil (permission denied / koneksi putus),
         // jangan biarkan layar loading muter selamanya — tampilkan
@@ -2005,6 +2049,7 @@
         appScreen.style.display = 'none';
       });
     } else {
+      if (currentUser) goOffline(currentUser.uid);
       currentUser = null;
       document.getElementById('topbarWho').style.display = 'none';
       verifyScreen.style.display = 'none';
@@ -2416,7 +2461,9 @@
           name: val.name || 'Pengguna',
           email: val.email || '',
           photoURL: val.photoURL || '',
-          status: val.status || ''
+          status: val.status || '',
+          online: !!val.online,
+          lastSeen: val.lastSeen || 0
         };
       }
       onUserProfileChanged();
@@ -2434,6 +2481,7 @@
     if (typeof renderGroupFriendPick === 'function') renderGroupFriendPick();
     if (activeChatId) updateChatHeader();
     refreshRenderedSenderNames();
+    refreshAllTicks();
     if (groupSettingsModal && groupSettingsModal.classList.contains('show')){
       let chat = chatsIndex[groupSettingsChatId];
       if (chat) populateGroupSettings();
@@ -3242,21 +3290,117 @@
 
     detachMessagesListener();
     let msgsRef = db.ref('chats/' + chatId + '/messages').limitToLast(200);
-    let cbAdded = function(snap){ appendMessage(snap.val(), snap.key); };
+    let cbAdded = function(snap){
+      appendMessage(snap.val(), snap.key);
+      let mv = snap.val();
+      if (mv && currentUser && mv.sender !== currentUser.uid && document.visibilityState === 'visible'){
+        markChatAsRead(chatId);
+      }
+    };
     let cbChanged = function(snap){ updateMessageInDOM(snap.key, snap.val()); };
     let cbRemoved = function(snap){ removeMessageFromDOM(snap.key); };
     msgsRef.on('child_added', cbAdded);
     msgsRef.on('child_changed', cbChanged);
     msgsRef.on('child_removed', cbRemoved);
     messagesListenerRef = { ref: msgsRef, handlers: { child_added: cbAdded, child_changed: cbChanged, child_removed: cbRemoved } };
+
+    attachReadsListener(chatId);
+    markChatAsRead(chatId);
   }
 
   function detachMessagesListener(){
+    detachReadsListener();
     if (!messagesListenerRef) return;
     messagesListenerRef.ref.off('child_added', messagesListenerRef.handlers.child_added);
     messagesListenerRef.ref.off('child_changed', messagesListenerRef.handlers.child_changed);
     messagesListenerRef.ref.off('child_removed', messagesListenerRef.handlers.child_removed);
     messagesListenerRef = null;
+  }
+
+  // -------------------------------------------------------------
+  // Status baca (centang 1/2 ala WhatsApp).
+  // chats/{chatId}/reads/{uid} menyimpan waktu terakhir kali user
+  // itu membuka & melihat chat tsb. Pesan dianggap "dibaca" lawan
+  // bicara kalau reads[lawan] >= createdAt pesan tersebut.
+  // -------------------------------------------------------------
+  let activeChatReads = {};
+  let readsListenerRef = null;
+  function attachReadsListener(chatId){
+    detachReadsListener();
+    let ref = db.ref('chats/' + chatId + '/reads');
+    let cb = function(snap){
+      activeChatReads = snap.val() || {};
+      refreshAllTicks();
+    };
+    ref.on('value', cb);
+    readsListenerRef = { ref: ref, cb: cb };
+  }
+  function detachReadsListener(){
+    if (readsListenerRef){
+      readsListenerRef.ref.off('value', readsListenerRef.cb);
+    }
+    readsListenerRef = null;
+    activeChatReads = {};
+  }
+  function markChatAsRead(chatId){
+    if (!chatId || !currentUser) return;
+    db.ref('chats/' + chatId + '/reads/' + currentUser.uid).set(firebase.database.ServerValue.TIMESTAMP);
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible' && activeChatId){
+      markChatAsRead(activeChatId);
+    }
+  });
+
+  // Daftar uid lawan bicara pada sebuah chat (semua anggota selain saya).
+  function chatRecipients(chatId){
+    let chat = chatsIndex[chatId];
+    if (!chat) return [];
+    let members = chat.members || {};
+    return Object.keys(members).filter(function(u){ return u !== (currentUser && currentUser.uid); });
+  }
+
+  // Tentukan status centang untuk pesan milik saya sendiri:
+  // 'single'    -> lawan bicara offline, belum tentu terkirim ke mereka (centang 1, putih)
+  // 'delivered' -> lawan bicara online tapi belum membaca (centang 2, putih)
+  // 'read'      -> sudah dibaca oleh (semua) lawan bicara (centang 2, biru)
+  function computeTickState(msg, chatId){
+    let recipients = chatRecipients(chatId);
+    if (recipients.length === 0) return 'delivered';
+    let createdAt = msg && msg.createdAt;
+    let allRead = recipients.every(function(uid){
+      let ts = activeChatReads[uid];
+      return !!ts && !!createdAt && ts >= createdAt;
+    });
+    if (allRead) return 'read';
+    let anyOnline = recipients.some(function(uid){
+      return userProfiles[uid] && userProfiles[uid].online;
+    });
+    return anyOnline ? 'delivered' : 'single';
+  }
+
+  function ticksHtml(state){
+    if (state === 'single'){
+      return '<span class="msg-ticks single" aria-label="Terkirim">' +
+        '<svg viewBox="0 0 16 15" width="15" height="14"><path d="M11.4 1.6 5.3 9.4 2.7 6.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '</span>';
+    }
+    let cls = state === 'read' ? 'msg-ticks double read' : 'msg-ticks double';
+    let label = state === 'read' ? 'Dibaca' : 'Diterima';
+    return '<span class="' + cls + '" aria-label="' + label + '">' +
+      '<svg viewBox="0 0 20 15" width="19" height="14"><path d="M13.4 1.6 7.3 9.4 4.7 6.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.9 1.6 11.6 9.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+    '</span>';
+  }
+
+  function refreshAllTicks(){
+    if (!currentUser) return;
+    Object.keys(messageEls).forEach(function(msgId){
+      let el = messageEls[msgId];
+      if (!el || !el.data || el.data.sender !== currentUser.uid) return;
+      let timeEl = el.row.querySelector('.time');
+      if (!timeEl) return;
+      timeEl.innerHTML = fmtTime(el.data.createdAt) + (el.data.edited ? '<span class="edited-tag">diedit</span>' : '') + ticksHtml(computeTickState(el.data, activeChatId));
+    });
   }
 
   // -------------------------------------------------------------
@@ -3429,12 +3573,13 @@
     if (showSender) ensureUserProfileSynced(m.sender);
     let senderDisplayName = showSender ? personInfo(m.sender).name || m.senderName || '' : '';
     let isImage = m.type === 'image' && m.imageData;
+    let ticksSpan = isMe ? ticksHtml(computeTickState(m, activeChatId)) : '';
     row.innerHTML =
       '<div class="bubble">' +
         (showSender ? '<span class="sender">' + escapeHtml(senderDisplayName) + '</span>' : '') +
         (isImage ? '<img class="img-msg" src="' + m.imageData + '" alt="Foto">' : '') +
         '<span class="text"></span>' +
-        '<span class="time">' + fmtTime(m.createdAt) + (m.edited ? '<span class="edited-tag">diedit</span>' : '') + '</span>' +
+        '<span class="time">' + fmtTime(m.createdAt) + (m.edited ? '<span class="edited-tag">diedit</span>' : '') + ticksSpan + '</span>' +
       '</div>';
     row.querySelector('.text').textContent = isImage ? '' : (m.text || '');
     if (isImage){
@@ -3453,8 +3598,10 @@
     if (!el || !m) return;
     el.data = m;
     let isImage = m.type === 'image' && m.imageData;
+    let isMe = m.sender === currentUser.uid;
     el.row.querySelector('.text').textContent = isImage ? '' : (m.text || '');
-    el.row.querySelector('.time').innerHTML = fmtTime(m.createdAt) + (m.edited ? '<span class="edited-tag">diedit</span>' : '');
+    let ticksSpan = isMe ? ticksHtml(computeTickState(m, activeChatId)) : '';
+    el.row.querySelector('.time').innerHTML = fmtTime(m.createdAt) + (m.edited ? '<span class="edited-tag">diedit</span>' : '') + ticksSpan;
     if (editingMessageId === msgId){
       editBannerPreview.textContent = m.text || '';
     }
