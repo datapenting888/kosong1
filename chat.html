@@ -2718,7 +2718,7 @@
       let row = document.createElement('div');
       row.className = 'chat-row-wrap';
       let isPrivateRow = chat.type !== 'group';
-      let deleteLabel = isPrivateRow ? 'Hapus pertemanan' : 'Hapus obrolan';
+      let deleteLabel = 'Hapus obrolan';
       row.innerHTML =
         '<div class="chat-row-delete-bg"><button type="button" class="chat-row-delete-btn" aria-label="' + deleteLabel + '" title="' + deleteLabel + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>' +
@@ -2736,7 +2736,7 @@
         if (isPrivateRow){
           let members = chat.members || {};
           let otherUid = Object.keys(members).find(function(u){ return u !== currentUser.uid; });
-          removeFriendAndChat(chatId, otherUid, name);
+          deleteChatForMeOnly(chatId, otherUid, name);
         } else {
           deleteChatFromList(chatId, name);
         }
@@ -2862,6 +2862,33 @@
     // Chat/grup tetap terbuka & tetap ada di daftar; pesan-pesannya
     // akan otomatis hilang dari layar lewat listener child_removed
     // kalau chat ini sedang dibuka.
+  }
+
+  // Hapus obrolan HANYA dari sisi saya sendiri (seperti "Hapus Chat" di
+  // WhatsApp): chat langsung hilang dari daftar chat saya dan riwayat
+  // pesannya tidak lagi tampil buat saya. Pertemanan TETAP ada, dan di
+  // sisi teman (otherUid) obrolan beserta SELURUH riwayat pesannya
+  // TETAP utuh seperti semula — sama sekali tidak ikut terhapus atau
+  // terpengaruh oleh aksi ini.
+  function deleteChatForMeOnly(chatId, otherUid, name){
+    let msg = 'Hapus obrolan dengan "' + name + '"?\n\nPercakapan ini hanya akan hilang dari daftar chat kamu. Riwayat pesan tetap ada dan tidak terhapus di sisi "' + name + '".';
+    if (!confirm(msg)) return;
+    let updates = {};
+    updates['userChats/' + currentUser.uid + '/' + chatId] = null;
+    updates['chats/' + chatId + '/clearedFor/' + currentUser.uid] = firebase.database.ServerValue.TIMESTAMP;
+    db.ref().update(updates).then(function(){
+      if (activeChatId === chatId){
+        activeChatId = null;
+        detachMessagesListener();
+        chatEmptyState.style.display = 'flex';
+        chatActiveWrap.style.display = 'none';
+        mobileViewMode = 'list';
+        updateMobileView();
+        clearSavedActiveChat();
+      }
+    }).catch(function(err){
+      alert('Gagal menghapus obrolan: ' + err.message);
+    });
   }
 
   function removeFriendAndChat(chatId, otherUid, name){
@@ -3274,6 +3301,9 @@
     }
   }
 
+  let openChatToken = 0;
+  let activeChatClearedAt = 0;
+
   function openChat(chatId, fallbackName){
     activeChatId = chatId;
     chatEmptyState.style.display = 'none';
@@ -3290,10 +3320,36 @@
     saveMobileViewState('chat');
 
     detachMessagesListener();
+    activeChatClearedAt = 0;
+    // Cek dulu kapan SAYA (bukan lawan bicara) terakhir menghapus
+    // obrolan ini (chats/{chatId}/clearedFor/{uid saya}). Kalau ada,
+    // pesan-pesan lama sebelum waktu itu disembunyikan hanya untuk
+    // saya — data aslinya di database tidak disentuh sama sekali,
+    // jadi tetap utuh dan tetap terlihat penuh di sisi lawan bicara.
+    let myToken = ++openChatToken;
+    db.ref('chats/' + chatId + '/clearedFor/' + currentUser.uid).once('value').then(function(snap){
+      if (myToken !== openChatToken || activeChatId !== chatId) return;
+      activeChatClearedAt = snap.val() || 0;
+      attachMessagesListenerForChat(chatId);
+    }).catch(function(){
+      if (myToken !== openChatToken || activeChatId !== chatId) return;
+      activeChatClearedAt = 0;
+      attachMessagesListenerForChat(chatId);
+    });
+
+    attachReadsListener(chatId);
+    markChatAsRead(chatId);
+  }
+
+  function attachMessagesListenerForChat(chatId){
     let msgsRef = db.ref('chats/' + chatId + '/messages').limitToLast(200);
     let cbAdded = function(snap){
-      appendMessage(snap.val(), snap.key);
       let mv = snap.val();
+      // Pesan yang dibuat sebelum saya menghapus obrolan ini tetap ada
+      // di database (untuk lawan bicara), tapi disembunyikan dari
+      // tampilan saya saja.
+      if (activeChatClearedAt && mv && mv.createdAt && mv.createdAt <= activeChatClearedAt) return;
+      appendMessage(mv, snap.key);
       if (mv && currentUser && mv.sender !== currentUser.uid && document.visibilityState === 'visible'){
         markChatAsRead(chatId);
       }
@@ -3304,9 +3360,6 @@
     msgsRef.on('child_changed', cbChanged);
     msgsRef.on('child_removed', cbRemoved);
     messagesListenerRef = { ref: msgsRef, handlers: { child_added: cbAdded, child_changed: cbChanged, child_removed: cbRemoved } };
-
-    attachReadsListener(chatId);
-    markChatAsRead(chatId);
   }
 
   function detachMessagesListener(){
