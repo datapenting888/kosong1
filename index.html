@@ -106,6 +106,31 @@
     border-top:1px solid rgba(255,255,255,0.1);
     margin:0 0 18px;
   }
+  .sidebar .sidebar-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .sidebar .header-icon-link{
+    flex-shrink:0;
+    width:44px;
+    height:44px;
+    border-radius:10px;
+    background:#1c1c28;
+    border:1px solid rgba(255,255,255,0.12);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#c9c9d6;
+    text-decoration:none;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .sidebar .header-icon-link:hover{
+    background:#22222f;
+    border-color:rgba(124,92,255,0.55);
+    color:#a78bfa;
+  }
   .sidebar .menu-caption{
     color:#8b8b9a;
     font-size:13px;
@@ -176,7 +201,7 @@
       gap:12px;
     }
     .sidebar .menu-caption{ display:none; }
-    .sidebar .brand{ display:none; }
+    .sidebar .sidebar-header{ display:none; }
     .sidebar .brand-divider{ display:none; }
     .sidebar .nav-item{ margin-bottom:0; }
     .sidebar .nav-item .label{ white-space:normal; }
@@ -1462,7 +1487,20 @@
 </div>
 
 <div class="sidebar">
-  <div class="brand"><span class="uy">UY</span> <span class="lab">LAB</span> <span class="brand-tag">By GOLAN</span></div>
+  <div class="sidebar-header">
+    <div class="brand"><span class="uy">UY</span> <span class="lab">LAB</span> <span class="brand-tag">By GOLAN</span></div>
+    <!--
+      Ikon "DATA PENTING" — dipindahkan ke sini (hanya ikonnya, tanpa label)
+      di samping logo, tetap menuju chat.html (dibuka di tab baru).
+    -->
+    <a class="header-icon-link" id="navDataPrivasi" href="chat.html" target="_blank" rel="noopener" title="Data Penting">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M9 13h6M9 17h6M9 9h1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
   <hr class="brand-divider">
   <div class="menu-caption">MENU DASBOARD</div>
   <div class="nav-item active" id="navPrediksi">
@@ -1558,22 +1596,6 @@
     </span>
     <span class="label label-sm">DATA SCREENSHOT</span>
   </div>
-
-  <!--
-    Menu "DATA PRIVASI" — link menuju dashboard chat privasi/grup
-    (chat.html), dibuka di tab baru karena merupakan halaman terpisah
-    dengan login (Firebase Authentication) sendiri.
-  -->
-  <a class="nav-item" id="navDataPrivasi" href="chat.html" target="_blank" rel="noopener">
-    <span class="icon">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M9 13h6M9 17h6M9 9h1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </span>
-    <span class="label label-sm">DATA PENTING</span>
-  </a>
 
   <!--
     Menu "CARA BETTING TOGEL" — halaman panduan cara betting togel
