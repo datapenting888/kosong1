@@ -2066,6 +2066,7 @@
       updateConnIndicator();
       if (pendingAutoLogoutNotice){
         pendingAutoLogoutNotice = false;
+        showAuthError('Anda keluar otomatis karena tidak ada aktivitas selama 5 menit. Silakan login kembali.');
       }
     }
   });
