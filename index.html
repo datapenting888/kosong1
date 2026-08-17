@@ -142,32 +142,40 @@
     cursor:pointer;
     margin-bottom:10px;
     background:#1c1c28;
-    border:1px solid transparent;
-    transition: background .15s ease;
+    border:1px solid rgba(110,231,150,0.5);
+    box-shadow: 0 0 0 1px rgba(110,231,150,0.09) inset, 0 0 14px rgba(110,231,150,0.28);
+    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
   }
   .sidebar .nav-item:hover{
     background:#22222f;
+    border-color:rgba(110,231,150,0.75);
+    box-shadow: 0 0 0 1px rgba(110,231,150,0.12) inset, 0 0 20px rgba(110,231,150,0.42);
   }
   .sidebar .nav-item.active{
     background: rgba(124,92,255,0.18);
-    border:1px solid rgba(124,92,255,0.55);
+    border:1px solid rgba(124,92,255,0.65);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset, 0 0 18px rgba(124,92,255,0.35);
   }
   .sidebar .nav-item .icon{
-    flex-shrink:0;
-    width:20px; height:20px;
-    display:flex; align-items:center; justify-content:center;
-    color:#c9c9d6;
+    display:none;
   }
   .sidebar .nav-item.active .icon{ color:#a78bfa; }
   .sidebar .nav-item .label{
-    font-family:'Bree Serif', serif;
+    font-family:Arial, sans-serif;
     font-size:14.5px;
-    font-weight:400;
+    font-weight:700;
     line-height:1.35;
-    color:#dcdce3;
+    background:linear-gradient(90deg, #a3e635, #00e08a);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
     white-space:nowrap;
   }
-  .sidebar .nav-item.active .label{ color:#a78bfa; }
+  .sidebar .nav-item.active .label{
+    color:#c9b8ff;
+    text-shadow: 0 0 14px rgba(167,139,250,0.45);
+  }
   .sidebar .nav-item .label.label-sm{
     font-size:14.5px;
     letter-spacing:-0.2px;
@@ -1668,7 +1676,6 @@
   <div class="panel" style="padding:0; background:transparent;">
     <div class="bola-scope">
       <div class="container">
-        <span class="eyebrow">LAPAK GOLAN</span>
         <h2>KALKULATOR BOLA PNG</h2>
 
         <!-- Form Input -->
