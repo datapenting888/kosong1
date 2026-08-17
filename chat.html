@@ -1010,6 +1010,136 @@
   }
   .attach-btn-round:hover{ background:#26263a; }
   .attach-btn-round svg{ width:20px; height:20px; }
+  .emoji-btn-round{
+    flex-shrink:0;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    border:1px solid var(--border-soft);
+    background:#0f0f1a;
+    color:var(--text-light);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    font-size:19px;
+    line-height:1;
+  }
+  .emoji-btn-round:hover{ background:#26263a; }
+  .emoji-btn-round.active{ background:var(--accent-emas); color:#1a1a1a; border-color:var(--accent-emas); }
+
+  /* ---------- Panel emoji ---------- */
+  .emoji-panel{
+    flex-shrink:0;
+    display:none;
+    flex-direction:column;
+    height:320px;
+    max-height:46vh;
+    background:var(--bg-card);
+    border-top:1px solid var(--border-soft);
+  }
+  .emoji-panel.open{ display:flex; }
+  .emoji-panel-search{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:10px 12px 4px;
+    padding:8px 12px;
+    background:#0f0f1a;
+    border:1px solid var(--border-soft);
+    border-radius:18px;
+    flex-shrink:0;
+  }
+  .emoji-panel-search svg{ width:15px; height:15px; color:var(--text-dim); flex-shrink:0; }
+  .emoji-panel-search input{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--text-light);
+    font-size:13px;
+  }
+  .emoji-panel-tabs{
+    display:flex;
+    gap:8px;
+    margin:8px 12px 2px;
+    flex-shrink:0;
+  }
+  .emoji-tab-btn{
+    flex:1;
+    padding:7px 8px;
+    border-radius:10px;
+    border:1px solid var(--border-soft);
+    background:transparent;
+    color:var(--text-dim);
+    font-size:12px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+  }
+  .emoji-tab-btn.active{
+    background:var(--accent-emas);
+    color:#1a1a1a;
+    border-color:var(--accent-emas);
+  }
+  .emoji-panel-grid{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(38px, 1fr));
+    gap:2px;
+    padding:8px 10px;
+    align-content:start;
+  }
+  .emoji-cell{
+    background:transparent;
+    border:none;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:38px;
+    font-size:22px;
+    line-height:1;
+    padding:0;
+  }
+  .emoji-cell:hover{ background:rgba(255,255,255,0.08); }
+  .emoji-cell img{ width:26px; height:26px; object-fit:contain; }
+  .emoji-panel-empty{
+    grid-column:1/-1;
+    text-align:center;
+    color:var(--text-dim);
+    font-size:12.5px;
+    padding:24px 10px;
+  }
+  .emoji-panel-cats{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:2px;
+    padding:6px 8px;
+    border-top:1px solid var(--border-soft);
+    overflow-x:auto;
+  }
+  .emoji-cat-btn{
+    flex-shrink:0;
+    width:32px;
+    height:32px;
+    border-radius:8px;
+    border:none;
+    background:transparent;
+    color:var(--text-dim);
+    font-size:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .emoji-cat-btn.active{ background:rgba(255,255,255,0.1); color:var(--accent-emas); }
+  .emoji-cat-btn.backspace{ margin-left:auto; color:var(--text-dim); }
+  .emoji-cat-btn.backspace svg{ width:17px; height:17px; }
   .bubble .img-msg{
     display:block;
     max-width:100%;
@@ -1152,6 +1282,8 @@
     .chat-input-row textarea{ padding:14px 16px; font-size:16.5px; min-height:46px; }
     .send-btn-round{ width:38px; height:38px; }
     .attach-btn-round{ width:38px; height:38px; }
+    .emoji-btn-round{ width:38px; height:38px; }
+    .emoji-panel{ max-height:42vh; }
 
     .modal{ padding:16px; max-width:340px; }
     .modal h2{ font-size:20px; }
@@ -1359,12 +1491,39 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
           <input type="file" id="chatPhotoInput" accept="image/*" style="display:none;">
+          <button class="emoji-btn-round" id="btnEmojiToggle" aria-label="Emoji" title="Emoji">🙂</button>
           <textarea id="msgInput" rows="1" placeholder="Tulis pesan..."></textarea>
           <button class="send-btn-round" id="btnSendMsg" aria-label="Kirim">
             <svg viewBox="0 0 24 24" fill="none">
               <path d="M3 20l18-8L3 4v6l12 2-12 2v6z" fill="currentColor"/>
             </svg>
           </button>
+        </div>
+        <div class="emoji-panel" id="emojiPanel">
+          <div class="emoji-panel-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="emojiSearchInput" placeholder="Cari Emoji">
+          </div>
+          <div class="emoji-panel-tabs">
+            <button type="button" class="emoji-tab-btn active" id="emojiTabStatic" data-tab="static">🙂 Emoji</button>
+            <button type="button" class="emoji-tab-btn" id="emojiTabAnimated" data-tab="animated">✨ Bergerak</button>
+          </div>
+          <div class="emoji-panel-grid" id="emojiGrid"></div>
+          <div class="emoji-panel-cats" id="emojiCatsBar">
+            <button type="button" class="emoji-cat-btn active" data-cat="recent" title="Terbaru">🕐</button>
+            <button type="button" class="emoji-cat-btn" data-cat="smileys" title="Senyum">😀</button>
+            <button type="button" class="emoji-cat-btn" data-cat="people" title="Orang">👋</button>
+            <button type="button" class="emoji-cat-btn" data-cat="animals" title="Hewan">🐻</button>
+            <button type="button" class="emoji-cat-btn" data-cat="food" title="Makanan">🍔</button>
+            <button type="button" class="emoji-cat-btn" data-cat="activity" title="Aktivitas">⚽</button>
+            <button type="button" class="emoji-cat-btn" data-cat="travel" title="Tempat">✈️</button>
+            <button type="button" class="emoji-cat-btn" data-cat="objects" title="Objek">💡</button>
+            <button type="button" class="emoji-cat-btn" data-cat="symbols" title="Simbol">❤️</button>
+            <button type="button" class="emoji-cat-btn" data-cat="flags" title="Bendera">🚩</button>
+            <button type="button" class="emoji-cat-btn backspace" id="btnEmojiBackspace" title="Hapus">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -3847,7 +4006,7 @@
       sendImageMessage(dataUrl);
     });
   });
-  function sendImageMessage(dataUrl){
+  function sendImageMessage(dataUrl, previewText){
     let msgRef = db.ref('chats/' + activeChatId + '/messages').push();
     let payload = {
       sender: currentUser.uid,
@@ -3859,10 +4018,244 @@
     };
     let updates = {};
     updates['chats/' + activeChatId + '/messages/' + msgRef.key] = payload;
-    updates['chats/' + activeChatId + '/lastMessage'] = '📷 Foto';
+    updates['chats/' + activeChatId + '/lastMessage'] = previewText || '📷 Foto';
     updates['chats/' + activeChatId + '/lastMessageAt'] = firebase.database.ServerValue.TIMESTAMP;
     db.ref().update(updates);
   }
+
+  // ================= PANEL EMOJI (statis + bergerak) =================
+  (function(){
+    // Emoji statis per kategori (karakter unicode biasa, disisipkan langsung ke teks pesan)
+    var EMOJI_CATS = {
+      smileys: "😀😃😄😁😆😅🤣😂🙂🙃🫠😉😊😇🥰😍🤩😘😗☺️😚😙🥲😋😛😜🤪😝🤑🤗🤭🫢🫣🤫🤔🫡🤐🤨😐😑😶🫥😏😒🙄😬🤥😌😔😪🤤😴😷🤒🤕🤢🤮🤧🥵🥶🥴😵🤯🤠🥳🥸😎🤓🧐😕🫤😟🙁☹️😮😯😲😳🥺🥹😦😧😨😰😥😢😭😱😖😣😞😓😩😫🥱😤😡😠🤬😈👿💀☠️💩🤡👹👺👻👽👾🤖😺😸😹😻😼😽🙀😿😾",
+      people: "👋🤚🖐️✋🖖👌🤌🤏✌️🤞🤟🤘🤙👈👉👆🖕👇☝️👍👎✊👊🤛🤜👏🙌👐🤲🤝🙏✍️💅🤳💪🦾👂👃🧠🦷👀👁️👅👄💋🩸😴🧑👨👩🧓👴👵👶🧒🧑‍🎓🧑‍💻🧑‍🍳🧑‍🌾🧑‍🔧🧑‍🚀🧑‍🚒👮🕵️💂🥷👷🤴👸🤵👰🤰🤱👼🎅🤶🦸🦹🧙🧚🧛🧜🧝🧞🧟💆💇🚶🧍🧎🏃💃🕺👯🧖👭👬👫",
+      animals: "🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐽🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🐥🦆🦅🦉🦇🐺🐗🐴🦄🐝🐛🦋🐌🐞🐜🪲🦟🕷️🕸️🐢🐍🦎🦖🦕🐙🦑🦐🦞🦀🐡🐠🐟🐬🐳🐋🦈🐊🐅🐆🦓🦍🐘🦛🦏🐪🐫🦒🐃🐂🐄🐎🐖🐑🦙🐐🦌🐕🐩🐈🐓🦃🦚🦜🦢🦩🕊️🐇🦝🦨🦡🦦🦥🐁🐀🐿️🦔🌵🎄🌲🌳🌴🌱🌿☘️🍀🎋🍃🍂🍁🌾🌺🌻🌹🌷🌼🌸💐🍄🌰🦀",
+      food: "🍏🍎🍐🍊🍋🍌🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝🍅🍆🥑🥦🥬🥒🌶️🫑🌽🥕🧄🧅🥔🍠🥐🥯🍞🥖🥨🧀🥚🍳🥞🧇🥓🥩🍗🍖🌭🍔🍟🍕🥪🌮🌯🥗🥘🍝🍜🍲🍛🍣🍱🥟🍤🍙🍚🍘🍥🥠🍢🍡🍧🍨🍦🥧🧁🍰🎂🍮🍭🍬🍫🍿🍩🍪🌰🥜🍯🥛🍼☕🍵🍺🍻🥂🍷🥃🍸🍹🧉🍾🧊🍽️🍴🥄🔪🏺",
+      activity: "⚽🏀🏈⚾🥎🎾🏐🏉🥏🎱🪀🏓🏸🏒🏑🥍🏏🥅⛳🪁🏹🎣🤿🥊🥋🎽🛹🛼🛷⛸️🥌🎿⛷️🏂🏋️🤼🤸⛹️🤺🤾🏌️🏇🧘🏄🏊🤽🚣🧗🚵🚴🏆🥇🥈🥉🏅🎖️🏵️🎗️🎫🎟️🎪🤹🎭🩰🎨🎬🎤🎧🎼🎹🥁🎷🎺🎸🎻🎲♟️🎯🎳🎮🎰🧩🧸",
+      travel: "🚗🚕🚙🚌🚎🏎️🚓🚑🚒🚐🛻🚚🚛🚜🛴🚲🛵🏍️🛺🚨🚔🚍🚘🚖🚡🚠🚟🚃🚋🚞🚝🚄🚅🚈🚂🚆🚇🚊🚉✈️🛫🛬🛩️💺🚀🛸🚁⛵🚤🛥️🛳️⛴️🚢⚓🚧🚦🚥🚏🗺️🗿🗽🗼🏰🏯🎡🎢🎠⛲⛱️🏖️🏝️🏜️🌋⛰️🏔️🗻🏕️⛺🏠🏡🏢🏬🏥🏦🏨🏪🏫🕌🕍⛩️⛪🌁🌃🏙️🌄🌅🌆🌇🌉🌌🌠🎆🎇🌈☀️🌤️⛅🌥️☁️🌦️🌧️⛈️🌩️🌨️❄️☃️⛄🌬️💨🌪️🌫️🌊💧☔⚡",
+      objects: "⌚📱💻⌨️🖥️🖨️🖱️💽💾💿📀📷📸📹🎥📞☎️📟📠📺📻🎙️🕹️🧭⏰🕰️⌛⏳🔋🔌💡🔦🕯️🧯💵💴💶💷💰💳💎⚖️🧰🔧🔨🛠️⛏️🔩⚙️🧱🔗🧲🔫💣🔪🗡️🛡️🚬⚰️🔮📿💈🔭🔬💊💉🩺🚪🪑🛏️🚽🚿🛁🧴🧷🧹🧺🧻🧼🧽🛒🎁🎀🎈🎉🎊🎏🎐🧧✉️📩📦📫📪📬📭📮📯📜📃📄📑🔖🏷️💰📚📖📕📗📘📙📓📒📔📰🗞️🔍🔎🔏🔐🔒🔓🖊️🖋️✒️🖌️🖍️📝✏️📌📍📎🖇️📏📐✂️🗑️",
+      symbols: "❤️🧡💛💚💙💜🖤🤍🤎💔❣️💕💞💓💗💖💘💝💟☮️✝️☪️🕉️☸️✡️🔯☯️♈♉♊♋♌♍♎♏♐♑♒♓🆔⚛️☢️☣️❌⭕🛑⛔💯❗❓‼️⁉️⚠️🚸🔱♻️✅❇️✳️❎🌐💠🌀💤🚹🚺🚻ℹ️🔤🔠🆖🆗🆙🆒🆕🆓0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣🔟🔢▶️⏸️⏹️⏭️⏮️⏩⏪🔀🔁🔂🔄🔃➡️⬅️⬆️⬇️↗️↘️↙️↖️↔️↩️↪️✔️☑️🔘🔴🟠🟡🟢🔵🟣⚫⚪🟤🔺🔻🔸🔹🔶🔷🔳🔲◼️◻️⬛⬜🟥🟧🟨🟩🟦🟪",
+      flags: "🏁🚩🎌🏳️🏳️‍🌈🏴‍☠️🇮🇩🇺🇸🇬🇧🇯🇵🇰🇷🇨🇳🇸🇦🇮🇳🇩🇪🇫🇷🇮🇹🇪🇸🇧🇷🇷🇺🇨🇦🇦🇺🇲🇾🇸🇬🇹🇭🇻🇳🇵🇭🇳🇱🇹🇷🇲🇽🇵🇹🇦🇪🇪🇬🇿🇦🇳🇬"
+    };
+    var CAT_ORDER = ['smileys','people','animals','food','activity','travel','objects','symbols','flags'];
+    var CAT_LABEL = { smileys:'Senyum', people:'Orang', animals:'Hewan', food:'Makanan', activity:'Aktivitas', travel:'Tempat', objects:'Objek', symbols:'Simbol', flags:'Bendera' };
+
+    // Kata kunci pencarian bahasa Indonesia untuk emoji yang paling sering dicari
+    var KEYWORDS = {
+      "😀":"senyum gembira","😃":"senyum gembira","😄":"senyum tawa","😁":"senyum gigi","😆":"tawa ngakak","😅":"tawa keringat","🤣":"ngakak guling","😂":"tawa nangis lucu","🙂":"senyum","🙃":"terbalik","😉":"kedip","😊":"senyum malu","😇":"malaikat polos","🥰":"cinta sayang gemas","😍":"cinta mata hati","🤩":"kagum bintang","😘":"cium sayang","😚":"cium","😋":"enak lezat lapar","😛":"julur lidah","😜":"julur lidah kedip","🤪":"gila konyol","😝":"julur lidah tutup mata","🤑":"uang duit mata duitan","🤗":"peluk","🤔":"mikir berpikir","😐":"datar","😑":"bosan datar","😏":"senyum sinis genit","😒":"kesal males","🙄":"malas bosan","😬":"nyengir canggung","😌":"lega tenang","😔":"sedih murung","😪":"ngantuk","🤤":"ngiler","😴":"tidur ngantuk","😷":"sakit masker","🤒":"demam sakit","🤕":"luka sakit kepala","🤢":"mual jijik","🤮":"muntah","🤧":"bersin flu","🥵":"panas gerah","🥶":"dingin beku","😵":"pusing","🤯":"kaget meledak pusing","🥳":"pesta ulang tahun senang","😎":"keren kacamata","🤓":"kutu buku pintar","😕":"bingung sedih","😟":"khawatir cemas","😮":"kaget terkejut","😲":"kaget terkejut","😳":"malu kaget","🥺":"memelas mohon sedih","😢":"nangis sedih","😭":"nangis kencang sedih","😱":"takut kaget histeris","😖":"stres bingung","😞":"kecewa sedih","😓":"capek keringat","😩":"lelah capek frustrasi","😫":"lelah capek","🥱":"menguap ngantuk","😤":"kesal ngotot","😡":"marah","😠":"marah kesal","🤬":"marah sumpah","😈":"iblis nakal","💀":"tengkorak mati","💩":"tai poop","🤡":"badut","👻":"hantu","🤖":"robot","😺":"kucing senyum","👋":"halo dadah lambai","👍":"jempol setuju bagus","👎":"jempol tidak setuju jelek","👌":"oke ok","✌️":"damai peace","🤞":"semoga jari silang","👏":"tepuk tangan","🙌":"rayakan angkat tangan","🙏":"terima kasih doa tolong sembah","✊":"kepal semangat","👊":"tinju","💪":"kuat semangat otot","👀":"mata lihat","👶":"bayi","👨":"pria laki","👩":"wanita perempuan","🐶":"anjing","🐱":"kucing","🐭":"tikus","🐰":"kelinci","🦊":"rubah","🐻":"beruang","🐼":"panda","🐨":"koala","🐯":"harimau","🦁":"singa","🐮":"sapi","🐷":"babi","🐸":"kodok katak","🐵":"monyet","🐔":"ayam","🐧":"penguin","🦄":"kuda unicorn","🐝":"lebah","🦋":"kupu kupu","🌹":"bunga mawar","🌸":"bunga","🍕":"pizza","🍔":"burger","🍟":"kentang goreng","🍗":"ayam","🍚":"nasi","🍜":"mie","🍰":"kue","🎂":"kue ulang tahun","🍩":"donat","☕":"kopi","🍺":"bir minum","⚽":"bola sepak","🏀":"basket","🎮":"game","🎵":"musik nada","🎉":"pesta rayakan konfeti","🎊":"pesta konfeti","🔥":"api keren mantap","✨":"kilau bagus","⭐":"bintang","🌟":"bintang kilau","💯":"seratus mantap","💥":"boom ledak","✈️":"pesawat terbang","🚗":"mobil","🏠":"rumah","💡":"lampu ide","💰":"uang duit","💎":"berlian permata","🎁":"hadiah kado","📱":"hp ponsel","💻":"laptop komputer","❤️":"cinta hati merah sayang","🧡":"hati oranye","💛":"hati kuning","💚":"hati hijau","💙":"hati biru","💜":"hati ungu","🖤":"hati hitam","🤍":"hati putih","💔":"hati patah putus sedih","💕":"cinta hati dua","💖":"hati kilau cinta","💗":"hati berdenyut","😻":"kucing cinta","😹":"kucing tawa","😢":"nangis","🤝":"salaman sepakat","😷":"masker sakit","🥇":"medali emas juara","🏆":"piala juara","🎯":"target sasaran","📌":"pin lokasi","✅":"centang benar","❌":"silang salah","❓":"tanya bingung","❗":"seru penting","🇮🇩":"indonesia bendera"
+    };
+
+    function keywordOf(ch){ return (KEYWORDS[ch] || '') + ' ' + ch; }
+
+    // Emoji bergerak (GIF animasi Noto Google) — {char unicode, codepoint hex utk URL}
+    var ANIM_ITEMS = [
+      ["😀","1f600"],["😃","1f603"],["😄","1f604"],["😁","1f601"],["😆","1f606"],["😅","1f605"],["🤣","1f923"],["😂","1f602"],
+      ["🙂","1f642"],["🙃","1f643"],["😉","1f609"],["😊","1f60a"],["😇","1f607"],["🥰","1f970"],["😍","1f60d"],["🤩","1f929"],
+      ["😘","1f618"],["😗","1f617"],["😚","1f61a"],["😙","1f619"],["😋","1f60b"],["😛","1f61b"],["😜","1f61c"],["🤪","1f92a"],
+      ["😝","1f61d"],["🤑","1f911"],["🤗","1f917"],["🤭","1f92d"],["🤫","1f92b"],["🤔","1f914"],["🤐","1f910"],["🤨","1f928"],
+      ["😐","1f610"],["😑","1f611"],["😏","1f60f"],["😒","1f612"],["🙄","1f644"],["😬","1f62c"],["🤥","1f925"],["😌","1f60c"],
+      ["😔","1f614"],["😪","1f62a"],["🤤","1f924"],["😴","1f634"],["😷","1f637"],["🤒","1f912"],["🤕","1f915"],["🤢","1f922"],
+      ["🤮","1f92e"],["🤧","1f927"],["🥵","1f975"],["🥶","1f976"],["🥴","1f974"],["😵","1f635"],["🤯","1f92f"],["🤠","1f920"],
+      ["🥳","1f973"],["😎","1f60e"],["🤓","1f913"],["🧐","1f9d0"],["😕","1f615"],["😟","1f61f"],["😮","1f62e"],["😯","1f62f"],
+      ["😲","1f632"],["😳","1f633"],["🥺","1f97a"],["😦","1f626"],["😧","1f627"],["😨","1f628"],["😰","1f630"],["😥","1f625"],
+      ["😢","1f622"],["😭","1f62d"],["😱","1f631"],["😖","1f616"],["😣","1f623"],["😞","1f61e"],["😓","1f613"],["😩","1f629"],
+      ["😫","1f62b"],["🥱","1f971"],["😤","1f624"],["😡","1f621"],["😠","1f620"],["🤬","1f92c"],["😈","1f608"],["💀","1f480"],
+      ["💩","1f4a9"],["🤡","1f921"],["👻","1f47b"],["🤖","1f916"],["😺","1f63a"],["😸","1f638"],["😹","1f639"],["😻","1f63b"],
+      ["👍","1f44d"],["👎","1f44e"],["👌","1f44c"],["✌️","270c"],["🤞","1f91e"],["🤟","1f91f"],["🤘","1f918"],["🤙","1f919"],
+      ["👋","1f44b"],["✋","270b"],["👏","1f44f"],["🙌","1f64c"],["🤝","1f91d"],["🙏","1f64f"],["✊","270a"],["👊","1f44a"],
+      ["💪","1f4aa"],["❤️","2764"],["🧡","1f9e1"],["💛","1f49b"],["💚","1f49a"],["💙","1f499"],["💜","1f49c"],["🖤","1f5a4"],
+      ["🤍","1f90d"],["🤎","1f90e"],["💔","1f494"],["💕","1f495"],["💖","1f496"],["💗","1f497"],["💘","1f498"],["💝","1f49d"],
+      ["🔥","1f525"],["✨","2728"],["🎉","1f389"],["🎊","1f38a"],["💯","1f4af"],["⭐","2b50"],["🌟","1f31f"],["💥","1f4a5"],
+      ["👀","1f440"],["🐶","1f436"],["🐱","1f431"],["🦁","1f981"],["🦄","1f984"],["🐷","1f437"],["🐸","1f438"],["🐵","1f435"],
+      ["🐧","1f427"],["🍕","1f355"],["🎂","1f382"],["🍺","1f37a"],["☕","2615"]
+    ];
+
+    var STORAGE_KEY = 'chatRecentEmojiV1';
+    function loadRecent(){
+      try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ return []; }
+    }
+    function pushRecent(entry){
+      var list = loadRecent();
+      list = list.filter(function(x){ return x.k !== entry.k; });
+      list.unshift(entry);
+      if (list.length > 24) list = list.slice(0, 24);
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){}
+    }
+
+    var panel = document.getElementById('emojiPanel');
+    var btnToggle = document.getElementById('btnEmojiToggle');
+    var grid = document.getElementById('emojiGrid');
+    var searchInput = document.getElementById('emojiSearchInput');
+    var tabStatic = document.getElementById('emojiTabStatic');
+    var tabAnimated = document.getElementById('emojiTabAnimated');
+    var catsBar = document.getElementById('emojiCatsBar');
+    var btnBackspace = document.getElementById('btnEmojiBackspace');
+
+    var activeTab = 'static';
+    var activeCat = 'recent';
+
+    function insertAtCursor(text){
+      var start = msgInput.selectionStart == null ? msgInput.value.length : msgInput.selectionStart;
+      var end = msgInput.selectionEnd == null ? msgInput.value.length : msgInput.selectionEnd;
+      var val = msgInput.value;
+      msgInput.value = val.slice(0, start) + text + val.slice(end);
+      var newPos = start + text.length;
+      msgInput.setSelectionRange(newPos, newPos);
+      autoGrow();
+    }
+
+    function makeCell(ch, imgUrl){
+      var cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'emoji-cell';
+      if (imgUrl){
+        var img = document.createElement('img');
+        img.src = imgUrl;
+        img.alt = ch;
+        img.loading = 'lazy';
+        img.onerror = function(){ cell.remove(); };
+        cell.appendChild(img);
+        cell.addEventListener('click', function(){
+          if (!activeChatId) return;
+          sendImageMessage(imgUrl, ch + ' Animasi');
+          pushRecent({ k:'a:'+ch, ch:ch, url:imgUrl });
+        });
+      } else {
+        cell.textContent = ch;
+        cell.addEventListener('click', function(){
+          insertAtCursor(ch);
+          pushRecent({ k:'s:'+ch, ch:ch });
+        });
+      }
+      return cell;
+    }
+
+    function renderEmpty(msg){
+      grid.innerHTML = '';
+      var d = document.createElement('div');
+      d.className = 'emoji-panel-empty';
+      d.textContent = msg;
+      grid.appendChild(d);
+    }
+
+    function renderGrid(){
+      var q = searchInput.value.trim().toLowerCase();
+      grid.innerHTML = '';
+      var frag = document.createDocumentFragment();
+
+      if (q){
+        // Cari di semua kategori sesuai tab aktif
+        if (activeTab === 'static'){
+          var seen = {};
+          CAT_ORDER.forEach(function(cat){
+            Array.from(EMOJI_CATS[cat]).forEach(function(ch){
+              if (seen[ch]) return;
+              if (keywordOf(ch).toLowerCase().indexOf(q) !== -1){
+                seen[ch] = true;
+                frag.appendChild(makeCell(ch, null));
+              }
+            });
+          });
+        } else {
+          ANIM_ITEMS.forEach(function(item){
+            if (keywordOf(item[0]).toLowerCase().indexOf(q) !== -1){
+              frag.appendChild(makeCell(item[0], 'https://fonts.gstatic.com/s/e/notoemoji/latest/' + item[1] + '/512.gif'));
+            }
+          });
+        }
+        if (!frag.childNodes.length){ renderEmpty('Emoji tidak ditemukan'); return; }
+        grid.appendChild(frag);
+        return;
+      }
+
+      if (activeTab === 'static' && activeCat === 'recent'){
+        var recent = loadRecent().filter(function(r){ return r.k.indexOf('s:') === 0; });
+        if (!recent.length){
+          renderEmpty('Belum ada emoji terbaru');
+          return;
+        }
+        recent.forEach(function(r){ frag.appendChild(makeCell(r.ch, null)); });
+        grid.appendChild(frag);
+        return;
+      }
+
+      if (activeTab === 'static'){
+        var chars = EMOJI_CATS[activeCat] || '';
+        Array.from(chars).forEach(function(ch){ frag.appendChild(makeCell(ch, null)); });
+      } else {
+        // Tab animasi tidak dibagi per kategori — tampilkan semua koleksi bergerak
+        ANIM_ITEMS.forEach(function(item){
+          frag.appendChild(makeCell(item[0], 'https://fonts.gstatic.com/s/e/notoemoji/latest/' + item[1] + '/512.gif'));
+        });
+      }
+      grid.appendChild(frag);
+    }
+
+    function setTab(tab){
+      activeTab = tab;
+      tabStatic.classList.toggle('active', tab === 'static');
+      tabAnimated.classList.toggle('active', tab === 'animated');
+      Array.prototype.forEach.call(catsBar.querySelectorAll('.emoji-cat-btn[data-cat]'), function(btn){
+        btn.style.display = tab === 'static' ? '' : 'none';
+      });
+      renderGrid();
+    }
+
+    function setCat(cat){
+      activeCat = cat;
+      Array.prototype.forEach.call(catsBar.querySelectorAll('.emoji-cat-btn[data-cat]'), function(btn){
+        btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+      });
+      searchInput.value = '';
+      renderGrid();
+    }
+
+    tabStatic.addEventListener('click', function(){ setTab('static'); });
+    tabAnimated.addEventListener('click', function(){ setTab('animated'); });
+    catsBar.addEventListener('click', function(e){
+      var btn = e.target.closest('.emoji-cat-btn[data-cat]');
+      if (btn) setCat(btn.getAttribute('data-cat'));
+    });
+    searchInput.addEventListener('input', renderGrid);
+    btnBackspace.addEventListener('click', function(){
+      var start = msgInput.selectionStart == null ? msgInput.value.length : msgInput.selectionStart;
+      var end = msgInput.selectionEnd == null ? msgInput.value.length : msgInput.selectionEnd;
+      var val = msgInput.value;
+      if (start !== end){
+        val = val.slice(0, start) + val.slice(end);
+        msgInput.value = val;
+        msgInput.setSelectionRange(start, start);
+        autoGrow();
+        return;
+      }
+      if (start === 0) return;
+      // Hapus satu unit emoji/karakter (aman untuk pasangan surrogate)
+      var before = Array.from(val.slice(0, start));
+      before.pop();
+      var newBefore = before.join('');
+      msgInput.value = newBefore + val.slice(start);
+      msgInput.setSelectionRange(newBefore.length, newBefore.length);
+      autoGrow();
+    });
+
+    btnToggle.addEventListener('click', function(){
+      var willOpen = !panel.classList.contains('open');
+      if (willOpen){
+        msgInput.blur();
+        panel.classList.add('open');
+        btnToggle.classList.add('active');
+        renderGrid();
+        messagesWrap.scrollTop = messagesWrap.scrollHeight;
+      } else {
+        panel.classList.remove('open');
+        btnToggle.classList.remove('active');
+      }
+    });
+    msgInput.addEventListener('focus', function(){
+      panel.classList.remove('open');
+      btnToggle.classList.remove('active');
+    });
+  })();
   function openImageViewer(src){
     imgViewerImg.src = src;
     imgViewerModal.classList.add('open');
