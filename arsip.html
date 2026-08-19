@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arsip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Fraunces:ital,wght@0,400;0,600;0,700;1,500;1,600;1,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-app: #11113d;
+    --bg-panel: #0a0d1a;
+    --bg-card: #0a0d24;
+    --accent-emas: #dbc36e;
+    --border-soft: rgba(255,255,255,0.15);
+    --text-light: #f3ede7;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0;
+    padding:0;
+    background: var(--bg-app);
+    color: var(--text-light);
+    font-family:'Segoe UI', Arial, sans-serif;
+    min-height:100%;
+  }
+  .arsip-wrap{
+    padding:20px 16px 40px;
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .arsip-panel{
+    background: var(--bg-panel);
+    border:1px solid var(--border-soft);
+    border-radius:15px;
+    padding:22px;
+    box-shadow: 0 0 30px rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .arsip-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .arsip-header .arsip-icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:26px; height:26px;
+    border-radius:6px;
+    background: rgba(122,90,248,0.18);
+    color:#a78bfa;
+  }
+  .arsip-header .arsip-title{
+    font-family:'Bree Serif', serif;
+    font-size:18px;
+    font-weight:700;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    color: var(--text-light);
+  }
+  .arsip-empty{
+    padding:60px 20px;
+    text-align:center;
+    color:#a9a9bb;
+    font-family:'Bree Serif', serif;
+    font-size:14.5px;
+    line-height:1.7;
+  }
+  .arsip-empty .arsip-empty-icon{
+    font-size:34px;
+    margin-bottom:10px;
+    color:#5c5c74;
+  }
+
+  /*
+    Area di bawah ini (id="arsipContent") adalah tempat mengisi konten arsip
+    sesungguhnya (mis. daftar/tabel/kartu data arsip). Saat ini masih kosong
+    (placeholder), silakan diisi sesuai kebutuhan.
+  */
+</style>
+</head>
+<body>
+
+<div class="arsip-wrap">
+  <div class="arsip-panel">
+    <div class="arsip-header">
+      <span class="arsip-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="4" width="18" height="5" rx="1.5" stroke="currentColor" stroke-width="2"/>
+          <path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9" stroke="currentColor" stroke-width="2"/>
+          <path d="M10 13h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="arsip-title">Arsip</span>
+    </div>
+
+    <div id="arsipContent">
+      <div class="arsip-empty">
+        <div class="arsip-empty-icon">&#128193;</div>
+        Belum ada data arsip.<br>
+        Konten halaman ini dapat diisi sesuai kebutuhan.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Script khusus halaman Arsip — terpisah dari index.html.
+  // Tambahkan logika (mis. ambil data arsip dari Firebase/localStorage,
+  // render daftar/tabel, dsb.) di sini sesuai kebutuhan ke depannya.
+})();
+</script>
+
+</body>
+</html>
